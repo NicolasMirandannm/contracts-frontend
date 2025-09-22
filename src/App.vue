@@ -1,8 +1,12 @@
 <template>
-  <router-view />
+  <v-app>
+    <router-view />
+    <AlertSnackbar ref="alertRef" />
+  </v-app>
 </template>
 
 <script setup>
+import AlertSnackbar from "@/components/error/AlertSnackbar.vue";
 </script>
 
 <style>

@@ -18,7 +18,7 @@
         </v-card-title>
 
 
-        <v-form @submit.prevent="onSubmit" ref="form">
+        <v-form @submit.prevent="onSubmit" ref="form" v-model="valid">
           <v-text-field
               v-model="email"
               label="E-mail"
@@ -30,6 +30,7 @@
               hide-details
               rounded="lg"
               class="mb-4"
+              :rules="[rules.required]"
           />
 
           <v-text-field
@@ -45,6 +46,7 @@
               hide-details
               rounded="lg"
               class="mb-6"
+              :rules="[rules.required]"
           />
 
           <v-btn
@@ -58,12 +60,12 @@
             Entrar
           </v-btn>
 
-          <div class="text-center text-caption">
-            <span class="text-grey-darken-1">Ainda não tem conta?</span>
+          <div class="d-flex justify-center align-center text-caption">
+            <span class="text-grey-darken-1 mr-1">Ainda não tem conta?</span>
             <v-btn
                 variant="text"
                 color="primary"
-                class="text-caption font-weight-medium"
+                class="text-caption font-weight-medium pa-0"
                 @click="onRegister"
             >
               Cadastre-se
@@ -76,24 +78,51 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import { ref } from 'vue'
+import { useRouter } from "vue-router";
+import RouteConstants from "@/router/RouteConstants.js";
+import { useAlert } from "@/composables/useAlert.js";
+import UserService from "@/api/services/contract-manager/UserService.js";
 
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
+const router = useRouter();
+const { showAlert } = useAlert()
+
+const showPassword = ref(false);
+
+const email = ref('');
+const password = ref('');
+
+const valid = ref(false);
+const rules = { required: (v) => !!v || "Campo obrigatório" };
 
 const onSubmit = () => {
-  alert(`Login com email: ${email.value} e senha: ${password.value}`)
+  if (valid.value) {
+    UserService.signIn(email.value, password.value).then(() => {
+      showAlert({
+        msg: "Autenticação realizada com sucesso!",
+        type: 'success'
+      })
+      router.push({ name: RouteConstants.HOME.name });
+    }).catch((error) => {
+      console.error("Erro ao realizar autenticação:", error.response);
+      let msg = error.response?.data?.message || "Ocorreu um erro na autenticação. Verifique suas credenciais e tente novamente."
+      showAlert({ msg, type: 'error' });
+    });
+  } else {
+    showAlert({ type: 'error', msg: 'Por favor, preencha todos os campos corretamente.' })
+  }
 }
 
 const onRegister = () => {
-  alert('Implementar Sign up')
+  email.value = '';
+  password.value = '';
+  router.push({ name: RouteConstants.SIGN_UP.name })
 }
 </script>
 
 <style scoped>
-  .login-title {
-    color: #194ea1;
-    opacity: 0.50;
-  }
+.login-title {
+  color: #194ea1;
+  opacity: 0.50;
+}
 </style>
