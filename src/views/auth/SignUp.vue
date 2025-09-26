@@ -163,6 +163,6 @@ const onLogin = () => {
 <style scoped>
 .login-title {
   color: #194ea1;
-  opacity: 0.5;
+  opacity: 0.8;
 }
 </style>
