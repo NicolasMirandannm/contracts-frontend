@@ -5,12 +5,14 @@ import RouteConstants from "@/router/RouteConstants.js";
 import Login from '@/views/auth/Login.vue';
 import Home from '@/views/Home.vue';
 import SignUp from "@/views/auth/SignUp.vue";
+import ForgotPassword from "@/views/auth/ForgotPassword.vue";
 
 
 const routes = [
     { ...RouteConstants.HOME, component: Home, meta: {requiresAuth: true} },
     { ...RouteConstants.LOGIN, component: Login },
-    { ...RouteConstants.SIGN_UP, component: SignUp }
+    { ...RouteConstants.SIGN_UP, component: SignUp },
+    { ...RouteConstants.FORGOT_PASSWORD, component: ForgotPassword },
 ]
 
 const router = createRouter({

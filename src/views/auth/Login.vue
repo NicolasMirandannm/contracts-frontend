@@ -60,17 +60,63 @@
             Entrar
           </v-btn>
 
-          <div class="d-flex justify-center align-center text-caption">
-            <span class="text-grey-darken-1 mr-1">Ainda não tem conta?</span>
-            <v-btn
-                variant="text"
-                color="primary"
-                class="text-caption font-weight-medium pa-0"
-                @click="onRegister"
-            >
-              Cadastre-se
-            </v-btn>
+<!--          <div class="d-flex flex-column align-center text-caption" style="line-height: 1;">-->
+<!--            <div style="margin-bottom: -8px;">-->
+<!--              <span class="text-grey-darken-1">Ainda não tem conta?</span>-->
+<!--              <v-btn-->
+<!--                  variant="text"-->
+<!--                  color="primary"-->
+<!--                  class="text-caption font-weight-medium pa-0 ml-1"-->
+<!--                  @click="onRegister"-->
+<!--              >-->
+<!--                Cadastre-se-->
+<!--              </v-btn>-->
+<!--            </div>-->
+
+<!--            <div>-->
+<!--              <span class="text-grey-darken-1">Esqueceu a senha?</span>-->
+<!--              <v-btn-->
+<!--                  variant="text"-->
+<!--                  color="primary"-->
+<!--                  class="text-caption font-weight-medium pa-0 ml-1"-->
+<!--                  @click="onForgotPassword"-->
+<!--              >-->
+<!--                Clique aqui-->
+<!--              </v-btn>-->
+<!--            </div>-->
+<!--          </div>-->
+
+          <div class="d-flex flex-column align-center" style="line-height: 1;">
+            <!-- Primeira div com fonte maior -->
+            <div style="margin-bottom: -6px; font-size: 0.9rem;">
+              <span class="text-grey-darken-1">Ainda não tem conta?</span>
+              <v-btn
+                  variant="text"
+                  color="primary"
+                  class="font-weight-medium pa-0 ml-1"
+                  style="font-size: 0.9rem; text-transform: none;"
+                  @click="onRegister"
+              >
+                Cadastre-se
+              </v-btn>
+            </div>
+
+            <!-- Segunda div com fonte menor -->
+            <div style="font-size: 0.75rem;">
+              <span class="text-grey-darken-1">Esqueceu a senha?</span>
+              <v-btn
+                  variant="text"
+                  color="primary"
+                  class="font-weight-medium pa-0 ml-1"
+                  style="font-size: 0.75rem; text-transform: none;"
+                  @click="onForgotPassword"
+              >
+                Clique aqui
+              </v-btn>
+            </div>
           </div>
+
+
         </v-form>
       </v-card>
     </v-main>
@@ -117,6 +163,10 @@ const onRegister = () => {
   email.value = '';
   password.value = '';
   router.push({ name: RouteConstants.SIGN_UP.name })
+}
+
+const onForgotPassword = () => {
+  router.push({ name: RouteConstants.FORGOT_PASSWORD.name })
 }
 </script>
 

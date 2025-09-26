@@ -9,4 +9,5 @@ export default {
   HOME: new RouteConstants("/", "Home"),
   LOGIN: new RouteConstants("/login", "Login"),
   SIGN_UP: new RouteConstants("/cadastro-usuario", "SignUp"),
+  FORGOT_PASSWORD: new RouteConstants("/recuperacao-senha", "PasswordRecovery"),
 }
