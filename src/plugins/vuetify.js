@@ -12,24 +12,21 @@ export default createVuetify({
         defaultTheme: 'light',
         themes: {
             light: {
-                dark: false,
                 colors: {
-                    background: '#FFFFFF',
-                    surface: '#FFFFFF',
                     primary: '#1976D2',
-                    secondary: '#424242',
+                    secondary: '#5A6C87',
+                    surface: 'rgba(229,237,246,0.9)',
+                    background: 'rgba(127,138,155,0.58)',
                 },
             },
             dark: {
-                dark: true,
                 colors: {
+                    primary: '#2196F3',
+                    secondary: '#90A4AE',
+                    surface: '#1E1E2E',
                     background: '#121212',
-                    surface: '#1E1E1E',
-                    primary: '#1976D2',
-                    secondary: '#B0BEC5',
                 },
             },
         },
     },
 })
-

@@ -20,8 +20,8 @@ const { theme, toggleTheme } = useAppTheme();
 <style scoped>
 .theme-toggle {
   position: fixed;
-  top: 16px;
-  left: 16px;
+  bottom: 16px;
+  right: 16px;
   z-index: 1100;
 }
 </style>
