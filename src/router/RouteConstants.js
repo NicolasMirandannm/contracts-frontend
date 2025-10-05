@@ -10,4 +10,5 @@ export default {
   LOGIN: new RouteConstants("/login", "Login"),
   SIGN_UP: new RouteConstants("/cadastro-usuario", "SignUp"),
   FORGOT_PASSWORD: new RouteConstants("/recuperacao-senha", "PasswordRecovery"),
+  NOT_FOUND: new RouteConstants("/:pathMatch(.*)*", "NotFound"),
 }

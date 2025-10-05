@@ -36,7 +36,6 @@
           </v-col>
         </v-row>
 
-        <!-- ABAS -->
         <v-tabs
             v-model="abaSelecionada"
             color="deep-purple-accent-3"

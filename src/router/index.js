@@ -3,16 +3,18 @@ import {createRouter, createWebHistory} from 'vue-router'
 import RouteConstants from "@/router/RouteConstants.js";
 
 import Login from '@/views/auth/Login.vue';
-import Dashboard from '@/views/Dashboard.vue';
+import Home from '@/views/Home.vue';
 import SignUp from "@/views/auth/SignUp.vue";
 import ForgotPassword from "@/views/auth/ForgotPassword.vue";
+import NotFound from "@/views/not-found/NotFound.vue";
 
 
 const routes = [
-    { ...RouteConstants.HOME, component: Dashboard, meta: {requiresAuth: false} },
+    { ...RouteConstants.HOME, component: Home, meta: {requiresAuth: true} },
     { ...RouteConstants.LOGIN, component: Login },
     { ...RouteConstants.SIGN_UP, component: SignUp },
     { ...RouteConstants.FORGOT_PASSWORD, component: ForgotPassword },
+    { ...RouteConstants.NOT_FOUND, component: NotFound },
 ]
 
 const router = createRouter({

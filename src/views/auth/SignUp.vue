@@ -11,7 +11,6 @@
           elevation="3"
           rounded="xl"
       >
-        <!-- Cabeçalho -->
         <div class="text-center mb-6">
           <h1 class="text-h4 font-weight-bold text-primary">DiarixPro</h1>
           <p class="text-body-1 text-secondary">Cadastro de Usuário</p>
@@ -21,7 +20,6 @@
           Criar Conta
         </v-card-title>
 
-        <!-- Formulário -->
         <v-form @submit.prevent="onRegister" ref="form" v-model="valid">
           <v-text-field
               v-model="name"
@@ -87,7 +85,6 @@
               color="primary"
           />
 
-          <!-- Botão principal -->
           <v-btn
               type="submit"
               color="primary"
