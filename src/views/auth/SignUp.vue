@@ -1,24 +1,28 @@
 <template>
   <v-app>
-    <v-main class="d-flex align-center justify-center bg-grey-lighten-4" style="min-height: 100vh;">
+    <v-main
+        class="d-flex align-center justify-center bg-background"
+        style="min-height: 100vh;"
+    >
       <v-card
-          class="pa-10 mx-4"
+          class="pa-10 mx-4 bg-surface"
           max-width="500"
           width="100%"
           elevation="3"
           rounded="xl"
-          style="border: 1px solid rgba(168,197,255,0.72);"
       >
+        <!-- Cabeçalho -->
         <div class="text-center mb-6">
           <h1 class="text-h4 font-weight-bold text-primary">DiarixPro</h1>
-          <p class="text-body-1 text-grey-darken-1">Cadastro de Usuário</p>
+          <p class="text-body-1 text-secondary">Cadastro de Usuário</p>
         </div>
-        <v-card-title class="text-h5 font-weight-bold text-center mb-6 login-title">
+
+        <v-card-title class="text-h5 font-weight-bold text-center mb-6 opacity-60">
           Criar Conta
         </v-card-title>
 
+        <!-- Formulário -->
         <v-form @submit.prevent="onRegister" ref="form" v-model="valid">
-
           <v-text-field
               v-model="name"
               type="text"
@@ -30,6 +34,7 @@
               rounded="lg"
               class="mb-4"
               :rules="[rules.required]"
+              color="primary"
           />
 
           <PhoneNumberInput v-model="phone"/>
@@ -45,6 +50,7 @@
               rounded="lg"
               class="mb-4"
               :rules="[rules.required, rules.email]"
+              color="primary"
           />
 
           <v-text-field
@@ -60,6 +66,7 @@
               hide-details="auto"
               rounded="lg"
               class="mb-4"
+              color="primary"
           />
 
           <v-text-field
@@ -77,25 +84,29 @@
               rounded="lg"
               class="mb-6"
               :rules="[rules.required, rules.matchPassword]"
+              color="primary"
           />
 
+          <!-- Botão principal -->
           <v-btn
               type="submit"
               color="primary"
               block
-              class="mb-4 text-body-1"
+              class="mb-4 text-body-1 text-capitalize"
               size="x-large"
               rounded="lg"
           >
             Criar Conta
           </v-btn>
 
+          <!-- Link para login -->
           <div class="d-flex justify-center align-center text-caption">
-            <span class="text-grey-darken-1 mr-1">Já possui conta?</span>
+            <span class="text-secondary mr-1">Já possui conta?</span>
             <v-btn
                 variant="text"
                 color="primary"
                 class="text-caption font-weight-medium pa-0"
+                style="text-transform: none;"
                 @click="onLogin"
             >
               Entrar

@@ -1,20 +1,22 @@
 <template>
   <v-app>
-    <v-main class="d-flex align-center justify-center bg-grey-lighten-4" style="min-height: 100vh;">
+    <v-main
+        class="d-flex align-center justify-center bg-background"
+        style="min-height: 100vh;"
+    >
       <v-card
-          class="pa-10 mx-4"
+          class="pa-10 mx-4 bg-surface"
           max-width="500"
           width="100%"
           elevation="3"
           rounded="xl"
-          style="border: 1px solid rgba(168,197,255,0.72);"
       >
         <div class="text-center mb-6">
           <h1 class="text-h4 font-weight-bold text-primary">DiarixPro</h1>
-          <p class="text-body-1 text-grey-darken-1">Gestão de Diárias Simplificada</p>
+          <p class="text-body-1 text-secondary">Gestão de Diárias Simplificada</p>
         </div>
 
-        <v-card-title class="text-h5 font-weight-bold text-center mb-6 login-title">
+        <v-card-title class="text-h5 font-weight-bold text-center mb-6 opacity-60">
           Recuperar Senha
         </v-card-title>
 
@@ -30,14 +32,15 @@
               hide-details
               rounded="lg"
               class="mb-6"
-              :rules="[rules.required]"
+              :rules="[rules.required, rules.email]"
+              color="primary"
           />
 
           <v-btn
               type="submit"
               color="primary"
               block
-              class="mb-4 text-body-1"
+              class="mb-4 text-body-1 text-capitalize"
               size="x-large"
               rounded="lg"
           >
@@ -45,11 +48,12 @@
           </v-btn>
 
           <div class="d-flex justify-center align-center text-caption">
-            <span class="text-grey-darken-1 mr-1">Lembrou sua senha?</span>
+            <span class="text-secondary mr-1">Lembrou sua senha?</span>
             <v-btn
                 variant="text"
                 color="primary"
                 class="text-caption font-weight-medium pa-0"
+                style="text-transform: none;"
                 @click="onBackToLogin"
             >
               Voltar ao login

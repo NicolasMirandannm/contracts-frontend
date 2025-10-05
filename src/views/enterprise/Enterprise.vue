@@ -86,7 +86,7 @@ function onVerMais(item) {
         <template #item.acoes="{ item }">
           <div class="d-flex justify-center ga-2">
             <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-eye" @click="onVerMais(item)">Ver Mais</v-btn>
-            <v-btn size="small" variant="text" color="indigo" prepend-icon="mdi-pencil" @click="onEditar(item)">Editar</v-btn>
+            <v-btn size="small" variant="text" color="info" prepend-icon="mdi-pencil" @click="onEditar(item)">Editar</v-btn>
             <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete">Excluir</v-btn>
           </div>
         </template>
@@ -116,7 +116,7 @@ function onVerMais(item) {
       </v-data-table>
     </v-card>
   </div>
-  <v-dialog v-model="dialog" max-width="700px">
+  <v-dialog v-model="dialog" max-width="1000px">
     <EnterpriseFormComponent
         :mode="dialogMode"
         :model-value="selectedEmpresa"

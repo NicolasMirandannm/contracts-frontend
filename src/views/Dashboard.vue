@@ -1,7 +1,7 @@
 <template>
   <v-app >
     <v-app-bar flat density="comfortable">
-      <v-toolbar-title class="text-h6">
+      <v-toolbar-title class="text-h5 font-weight-bold text-primary">
         DiarixPro
       </v-toolbar-title>
 

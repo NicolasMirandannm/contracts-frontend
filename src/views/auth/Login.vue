@@ -1,23 +1,27 @@
 <template>
   <v-app>
-    <v-main class="d-flex align-center justify-center bg-grey-lighten-4" style="min-height: 100vh;">
+    <v-main
+        class="d-flex align-center justify-center bg-background py-4"
+        style="min-height: 100vh;"
+    >
       <v-card
-          class="pa-10 mx-4"
+          class="pa-10 mx-4 bg-surface"
           max-width="500"
           width="100%"
           elevation="3"
           rounded="xl"
-          style="border: 1px solid rgba(168,197,255,0.72);"
       >
+        <!-- Cabeçalho -->
         <div class="text-center mb-6">
           <h1 class="text-h4 font-weight-bold text-primary">DiarixPro</h1>
-          <p class="text-body-1 text-grey-darken-1">Gestão de Diárias Simplificada</p>
+          <p class="text-body-1 text-secondary">Gestão de Diárias Simplificada</p>
         </div>
-        <v-card-title class="text-h5 font-weight-bold text-center mb-6 login-title">
+
+        <v-card-title class="text-h5 font-weight-bold text-center mb-6 opacity-60">
           Login
         </v-card-title>
 
-
+        <!-- Formulário -->
         <v-form @submit.prevent="onSubmit" ref="form" v-model="valid">
           <v-text-field
               v-model="email"
@@ -31,6 +35,7 @@
               rounded="lg"
               class="mb-4"
               :rules="[rules.required]"
+              color="primary"
           />
 
           <v-text-field
@@ -47,49 +52,25 @@
               rounded="lg"
               class="mb-6"
               :rules="[rules.required]"
+              color="primary"
           />
 
+          <!-- Botão principal -->
           <v-btn
               type="submit"
               color="primary"
               block
-              class="mb-4 text-body-1"
+              class="mb-4 text-body-1 text-capitalize"
               size="x-large"
               rounded="lg"
           >
             Entrar
           </v-btn>
 
-<!--          <div class="d-flex flex-column align-center text-caption" style="line-height: 1;">-->
-<!--            <div style="margin-bottom: -8px;">-->
-<!--              <span class="text-grey-darken-1">Ainda não tem conta?</span>-->
-<!--              <v-btn-->
-<!--                  variant="text"-->
-<!--                  color="primary"-->
-<!--                  class="text-caption font-weight-medium pa-0 ml-1"-->
-<!--                  @click="onRegister"-->
-<!--              >-->
-<!--                Cadastre-se-->
-<!--              </v-btn>-->
-<!--            </div>-->
-
-<!--            <div>-->
-<!--              <span class="text-grey-darken-1">Esqueceu a senha?</span>-->
-<!--              <v-btn-->
-<!--                  variant="text"-->
-<!--                  color="primary"-->
-<!--                  class="text-caption font-weight-medium pa-0 ml-1"-->
-<!--                  @click="onForgotPassword"-->
-<!--              >-->
-<!--                Clique aqui-->
-<!--              </v-btn>-->
-<!--            </div>-->
-<!--          </div>-->
-
+          <!-- Links -->
           <div class="d-flex flex-column align-center" style="line-height: 1;">
-            <!-- Primeira div com fonte maior -->
             <div style="margin-bottom: -6px; font-size: 0.9rem;">
-              <span class="text-grey-darken-1">Ainda não tem conta?</span>
+              <span class="text-secondary">Ainda não tem conta?</span>
               <v-btn
                   variant="text"
                   color="primary"
@@ -101,9 +82,8 @@
               </v-btn>
             </div>
 
-            <!-- Segunda div com fonte menor -->
             <div style="font-size: 0.75rem;">
-              <span class="text-grey-darken-1">Esqueceu a senha?</span>
+              <span class="text-secondary">Esqueceu a senha?</span>
               <v-btn
                   variant="text"
                   color="primary"
@@ -115,8 +95,6 @@
               </v-btn>
             </div>
           </div>
-
-
         </v-form>
       </v-card>
     </v-main>

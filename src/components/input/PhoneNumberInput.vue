@@ -12,6 +12,8 @@
       rounded="lg"
       class="mb-4"
       maxlength="15"
+      :readonly="readonly"
+      :disabled="readonly"
       @update:model-value="onPhoneInput"
   />
 </template>
@@ -23,6 +25,10 @@ const props = defineProps({
   modelValue: {
     type: String,
     default: "",
+  },
+  readonly: {
+    type: Boolean,
+    default: false,
   },
 });
 

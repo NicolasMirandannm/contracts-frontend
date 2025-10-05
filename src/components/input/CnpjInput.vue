@@ -39,9 +39,13 @@ function onInput(e) {
 <template>
   <v-text-field
       :model-value="inputValue"
+      density="comfortable"
+      variant="outlined"
       @input="onInput"
       label="CNPJ"
+      maxlength="18"
       :readonly="readonly"
+      :disabled="readonly"
       :rules="[v => !!v || 'Campo obrigatório']"
       :required="required"
   />
