@@ -1,10 +1,16 @@
 <template>
   <v-app >
     <v-app-bar flat density="comfortable">
-      <v-toolbar-title class="text-h6 text-truncate">DiarixPro</v-toolbar-title>
-      <v-spacer />
-      <v-btn color="error" variant="tonal" size="small" rounded="lg">Logout</v-btn>
-      <v-chip variant="outlined" color="primary" size="small" rounded="lg">Olá, Gestor</v-chip>
+      <v-toolbar-title class="text-h6">
+        DiarixPro
+      </v-toolbar-title>
+
+      <div class="d-flex align-center pa-3" style="gap: 12px;">
+        <v-chip variant="outlined" color="primary" size="small" rounded="lg">
+          Bem vindo, Nicolas
+        </v-chip>
+        <v-btn color="error" variant="tonal" size="small" rounded="lg">Logout</v-btn>
+      </div>
     </v-app-bar>
 
     <v-main>
@@ -44,7 +50,7 @@
           <v-tab value="relatorios">Relatórios</v-tab>
         </v-tabs>
 
-        <v-window v-model="abaSelecionada" class="mt-4">
+        <v-window v-model="abaSelecionada" class="mt-4" :touch="false">
           <v-window-item value="empresas">
             <Enterprise />
           </v-window-item>

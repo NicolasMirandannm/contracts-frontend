@@ -70,7 +70,7 @@
                 variant="flat"
                 prepend-icon="mdi-plus"
                 rounded="lg"
-                @click="onCadastrar"
+                @click="$emit('cadastrar')"
             >
               Cadastrar
             </v-btn>

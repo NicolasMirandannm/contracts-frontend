@@ -1,59 +1,127 @@
 <script setup>
 import HeaderEnterpriseComponent from "@/views/enterprise/HeaderEnterpriseComponent.vue";
+import { computed, ref } from "vue";
+import EnterpriseFormComponent from "@/views/enterprise/EnterpriseFormComponent.vue";
 
 const headers = [
-  { title: "Data", key: "data" },
-  { title: "Empresa", key: "empresa" },
-  { title: "Diarista", key: "diarista" },
-  { title: "Valor", key: "valor" },
-  { title: "Status", key: "status" },
-  { title: "Ações", key: "acoes", sortable: false },
-];
+  { title: 'Empresa',        key: 'empresa',        align: 'center' },
+  { title: 'CNPJ',           key: 'cnpj',           align: 'center' },
+  { title: 'Representante',  key: 'representante',  align: 'center' },
+  { title: 'Status',         key: 'status',         align: 'center' },
+  { title: 'Ações',          key: 'acoes',          align: 'center', sortable: false },
+]
 
-const diarias = [
-  { data: "15/09/2025", empresa: "ABC Serviços", diarista: "Maria Silva", valor: "R$ 150,00", status: "Pendente" },
-  { data: "17/09/2025", empresa: "ABC Serviços", diarista: "Maria Silva", valor: "R$ 150,00", status: "Pago" },
-  { data: "20/09/2025", empresa: "ABC Serviços", diarista: "Maria Silva", valor: "R$ 150,00", status: "Pendente" },
-  { data: "21/09/2025", empresa: "ABC Serviços", diarista: "Maria Silva", valor: "R$ 150,00", status: "Pendente" },
-];
+const empresas = ref([
+  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
+  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
+  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
+  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
+  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
+  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
+  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
+  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
+  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
+  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
+  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
+  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
+])
+
+const page = ref(1)
+const itemsPerPage = ref(5)
+
+// total de páginas
+const pageCount = computed(() => Math.ceil(empresas.value.length / itemsPerPage.value))
+
+// itens que realmente serão exibidos na página atual
+const paginatedItems = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return empresas.value.slice(start, end)
+})
+
+
+const dialog = ref(false);
+const dialogMode = ref("create"); // create | edit | view
+const selectedEmpresa = ref(null);
+
+function onCadastrar() {
+  dialogMode.value = "create";
+  selectedEmpresa.value = {};
+  dialog.value = true;
+}
+
+function onEditar(item) {
+  dialogMode.value = "edit";
+  selectedEmpresa.value = { ...item };
+  dialog.value = true;
+}
+
+function onVerMais(item) {
+  dialogMode.value = "view";
+  selectedEmpresa.value = { ...item };
+  dialog.value = true;
+}
 </script>
 
 <template>
   <div class="w-100 h-100">
-    <HeaderEnterpriseComponent class="mb-4" />
-    <v-card  elevation="1" class="d-flex flex-column flex-grow-1 w-100 h-75 shadow-sm">
-
-      <!-- Data Table ocupa o resto da tela -->
+    <HeaderEnterpriseComponent class="mb-4" @cadastrar="onCadastrar" />
+    <v-card elevation="1" class="d-flex flex-column flex-grow-1 w-100 shadow-sm" rounded="xl">
       <v-data-table
           :headers="headers"
-          :items="diarias"
-          class="elevation-1 flex-grow-1 w-100"
-          density="comfortable"
+          :items="paginatedItems"
       >
+        <template #header.empresa="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.cnpj="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.representante="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.status="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+
         <template #item.status="{ item }">
-          <v-chip
-              :color="item.status === 'Pago' ? 'success' : 'warning'"
-              variant="tonal"
-              size="small"
-          >
+          <v-chip :color="item.status === 'Ativo' ? 'success' : 'error'" variant="tonal" size="small">
             {{ item.status }}
           </v-chip>
         </template>
+
         <template #item.acoes="{ item }">
-          <v-btn
-              size="small"
-              variant="text"
-              color="primary"
-              prepend-icon="mdi-pencil"
-          >
-            Editar
-          </v-btn>
+          <div class="d-flex justify-center ga-2">
+            <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-eye" @click="onVerMais(item)">Ver Mais</v-btn>
+            <v-btn size="small" variant="text" color="indigo" prepend-icon="mdi-pencil" @click="onEditar(item)">Editar</v-btn>
+            <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete">Excluir</v-btn>
+          </div>
+        </template>
+
+        <template #bottom>
+          <div class="d-flex justify-space-between align-center px-4 py-2 w-100">
+            <div>{{ (page - 1) * itemsPerPage + 1 }} -
+              {{ Math.min(page * itemsPerPage, empresas.length) }}
+              de {{ empresas.length }} itens
+            </div>
+            <v-pagination
+                v-model="page"
+                :length="pageCount"
+                total-visible="7"
+                rounded="circle"
+            />
+            <v-select
+                v-model="itemsPerPage"
+                :items="[5, 10, 15]"
+                density="comfortable"
+                hide-details
+                style="max-width: 180px"
+                label="Itens por página"
+            />
+          </div>
         </template>
       </v-data-table>
     </v-card>
   </div>
+  <v-dialog v-model="dialog" max-width="700px">
+    <EnterpriseFormComponent
+        :mode="dialogMode"
+        :model-value="selectedEmpresa"
+        @submit="dialog = false"
+        @cancel="dialog = false"
+    />
+  </v-dialog>
 </template>
-
-<style scoped>
-
-</style>
