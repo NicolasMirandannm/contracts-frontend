@@ -7,6 +7,7 @@ const httpConfig = axios.create({
     },
 });
 
+
 httpConfig.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
@@ -16,6 +17,17 @@ httpConfig.interceptors.request.use(
         return config;
     },
     (error) => Promise.reject(error)
+);
+
+httpConfig.interceptors.response.use(
+  response => response,
+  error => {
+    console.log(error.response)
+    if (error.response && [401, 403].includes(error.response.status)) {
+      window.location = '/login';
+    }
+    return Promise.reject(error);
+  },
 );
 
 export default httpConfig;

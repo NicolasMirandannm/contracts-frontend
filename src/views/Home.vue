@@ -7,9 +7,9 @@
 
       <div class="d-flex align-center pa-3" style="gap: 12px;">
         <v-chip variant="outlined" color="primary" size="small" rounded="lg">
-          Bem vindo, Nicolas
+          Bem vindo, {{user?.name?.split(" ")?.[0]}}
         </v-chip>
-        <v-btn color="error" variant="tonal" size="small" rounded="lg">Logout</v-btn>
+        <v-btn color="error" variant="tonal" size="small" rounded="lg" @click="logout">Logout</v-btn>
       </div>
     </v-app-bar>
 
@@ -37,7 +37,7 @@
         </v-row>
 
         <v-tabs
-            v-model="abaSelecionada"
+            v-model="selectedTab"
             color="deep-purple-accent-3"
             align-tabs="center"
             grow
@@ -49,7 +49,7 @@
           <v-tab value="relatorios">Relatórios</v-tab>
         </v-tabs>
 
-        <v-window v-model="abaSelecionada" class="mt-4" :touch="false">
+        <v-window v-model="selectedTab" class="mt-4" :touch="false">
           <v-window-item value="empresas">
             <Enterprise />
           </v-window-item>
@@ -84,10 +84,18 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Enterprise from "@/views/enterprise/Enterprise.vue";
+import UserService from "@/api/services/contract-manager/UserService.js";
+import { useRouter } from "vue-router";
+import { useAlert } from "@/composables/useAlert.js";
+import RouteConstants from "@/router/RouteConstants.js";
 
-const abaSelecionada = ref("empresas");
+const router = useRouter();
+const { showAlert } = useAlert();
+
+
+const selectedTab = ref("empresas");
 
 const resumo = [
   { titulo: "Total Empresas", valor: "12", cor: "text-primary" },
@@ -95,4 +103,24 @@ const resumo = [
   { titulo: "Contratos Ativos", valor: "27", cor: "text-primary" },
   { titulo: "Lucro Mês", valor: "R$ 4.000,00", cor: "text-success" },
 ];
+
+const user = ref({ name: '' });
+
+function logout() {
+  UserService.signOut()
+  router.push(RouteConstants.LOGIN.push());
+}
+
+onMounted(() => {
+  const userId = UserService.getCurrentUser().id;
+  UserService.findById(userId)
+      .then(response => {
+        user.value = response;
+      })
+      .catch(error => {
+        const msg = error.response?.message || "Ocorreu um erro na busca do usuário no servidor.";
+        showAlert({ msg, type: "error" });
+      });
+});
+
 </script>

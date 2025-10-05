@@ -3,6 +3,14 @@ class RouteConstants {
     this.path = path;
     this.name = name;
   }
+
+  replace() {
+    return { path: this.path }
+  }
+
+  push() {
+    return { name: this.name }
+  }
 }
 
 export default {

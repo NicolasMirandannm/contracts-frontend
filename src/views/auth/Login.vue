@@ -11,7 +11,6 @@
           elevation="3"
           rounded="xl"
       >
-        <!-- Cabeçalho -->
         <div class="text-center mb-6">
           <h1 class="text-h4 font-weight-bold text-primary">DiarixPro</h1>
           <p class="text-body-1 text-secondary">Gestão de Diárias Simplificada</p>
@@ -21,7 +20,6 @@
           Login
         </v-card-title>
 
-        <!-- Formulário -->
         <v-form @submit.prevent="onSubmit" ref="form" v-model="valid">
           <v-text-field
               v-model="email"
@@ -55,7 +53,6 @@
               color="primary"
           />
 
-          <!-- Botão principal -->
           <v-btn
               type="submit"
               color="primary"
@@ -67,7 +64,6 @@
             Entrar
           </v-btn>
 
-          <!-- Links -->
           <div class="d-flex flex-column align-center" style="line-height: 1;">
             <div style="margin-bottom: -6px; font-size: 0.9rem;">
               <span class="text-secondary">Ainda não tem conta?</span>
@@ -126,7 +122,7 @@ const onSubmit = () => {
         msg: "Autenticação realizada com sucesso!",
         type: 'success'
       })
-      router.push({ name: RouteConstants.HOME.name });
+      router.replace(RouteConstants.HOME.replace());
     }).catch((error) => {
       console.error("Erro ao realizar autenticação:", error.response);
       let msg = error.response?.data?.message || "Ocorreu um erro na autenticação. Verifique suas credenciais e tente novamente."
@@ -140,11 +136,11 @@ const onSubmit = () => {
 const onRegister = () => {
   email.value = '';
   password.value = '';
-  router.push({ name: RouteConstants.SIGN_UP.name })
+  router.replace(RouteConstants.SIGN_UP.replace())
 }
 
 const onForgotPassword = () => {
-  router.push({ name: RouteConstants.FORGOT_PASSWORD.name })
+  router.replace(RouteConstants.FORGOT_PASSWORD.replace())
 }
 </script>
 

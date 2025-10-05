@@ -33,6 +33,7 @@
     </v-main>
   </v-app>
 </template>
+
 <script setup lang="ts">
 import RouteConstants from "@/router/RouteConstants.js";
 </script>

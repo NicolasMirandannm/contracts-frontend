@@ -7,6 +7,8 @@ import Home from '@/views/Home.vue';
 import SignUp from "@/views/auth/SignUp.vue";
 import ForgotPassword from "@/views/auth/ForgotPassword.vue";
 import NotFound from "@/views/not-found/NotFound.vue";
+import { zhHans } from "vuetify/locale";
+import UserService from "@/api/services/contract-manager/UserService.js";
 
 
 const routes = [
@@ -24,12 +26,13 @@ const router = createRouter({
 
 
 router.beforeEach((to, from, next) => {
-    const token = localStorage.getItem('token')
+    const currentUser = UserService.getCurrentUser();
+    const hasToken = !!currentUser.token && !!currentUser.id;
 
-    if (to.meta.requiresAuth && !token) {
-        next({name: 'Login'})
-    } else if (to.name === 'Login' && token) {
-        next({name: 'Dashboard'})
+    if (to.meta.requiresAuth && !hasToken) {
+        next(RouteConstants.LOGIN.push())
+    } else if (to.name === RouteConstants.LOGIN.name && hasToken) {
+        next(RouteConstants.HOME.push())
     } else {
         next()
     }
