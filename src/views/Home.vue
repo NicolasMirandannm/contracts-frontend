@@ -36,6 +36,7 @@
           </v-col>
         </v-row>
 
+      <!--  pls mudar a cor da tab para ficar com a mesma paleta da logo       -->
         <v-tabs
             v-model="selectedTab"
             color="deep-purple-accent-3"
@@ -44,9 +45,7 @@
         >
           <v-tab value="empresas">Empresas</v-tab>
           <v-tab value="diaristas">Diaristas</v-tab>
-          <v-tab value="contratos">Contratos</v-tab>
           <v-tab value="diarias">Diárias</v-tab>
-          <v-tab value="relatorios">Relatórios</v-tab>
         </v-tabs>
 
         <v-window v-model="selectedTab" class="mt-4" :touch="false">
@@ -60,19 +59,7 @@
             </v-card>
           </v-window-item>
 
-          <v-window-item value="contratos">
-            <v-card rounded="xl" elevation="1" class="pa-4">
-              <v-card-title class="font-weight-bold">TODO</v-card-title>
-            </v-card>
-          </v-window-item>
-
           <v-window-item value="diarias">
-            <v-card rounded="xl" elevation="1" class="pa-4">
-              <v-card-title class="font-weight-bold">TODO</v-card-title>
-            </v-card>
-          </v-window-item>
-
-          <v-window-item value="relatorios">
             <v-card rounded="xl" elevation="1" class="pa-4">
               <v-card-title class="font-weight-bold">TODO</v-card-title>
             </v-card>
@@ -100,7 +87,7 @@ const selectedTab = ref("empresas");
 const resumo = [
   { titulo: "Total Empresas", valor: "12", cor: "text-primary" },
   { titulo: "Total Diaristas", valor: "34", cor: "text-primary" },
-  { titulo: "Contratos Ativos", valor: "27", cor: "text-primary" },
+  { titulo: "Diarias Realizadas (todo - colocar o mes vigente)", valor: "27", cor: "text-primary" },
   { titulo: "Lucro Mês", valor: "R$ 4.000,00", cor: "text-success" },
 ];
 
