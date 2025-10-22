@@ -1,11 +1,11 @@
 <template>
   <v-app >
     <v-app-bar flat density="comfortable">
-      <v-toolbar-title class="text-h5 font-weight-bold text-primary">
-        DiarixPro
+      <v-toolbar-title class="text-h6 font-weight-bold">
+        <img src="@/assets/diarix_logo.png" alt="DiarixPro Logo" style="height: 80px;" />
       </v-toolbar-title>
 
-      <div class="d-flex align-center pa-3" style="gap: 12px;">
+      <div class="d-flex align-center pa-2" style="gap: 12px;">
         <v-chip variant="outlined" color="primary" size="small" rounded="lg">
           Bem vindo, {{user?.name?.split(" ")?.[0]}}
         </v-chip>
@@ -36,10 +36,9 @@
           </v-col>
         </v-row>
 
-      <!--  pls mudar a cor da tab para ficar com a mesma paleta da logo       -->
         <v-tabs
             v-model="selectedTab"
-            color="deep-purple-accent-3"
+            color="blue-darken-2"
             align-tabs="center"
             grow
         >

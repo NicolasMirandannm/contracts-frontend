@@ -1,30 +1,31 @@
 <script setup>
 import HeaderEnterpriseComponent from "@/views/enterprise/HeaderEnterpriseComponent.vue";
-import { computed, ref } from "vue";
+import {computed, onMounted, ref} from "vue";
 import EnterpriseFormComponent from "@/views/enterprise/EnterpriseFormComponent.vue";
+import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
+
+const empresas = ref([]);
+
+onMounted(async () => {
+  try {
+    const response = await EnterpriseService.findAll()
+    empresas.value = Array.isArray(response)
+        ? response
+        : response?.content || []
+  } catch (error) {
+    console.error('Erro ao buscar empresas:', error)
+    empresas.value = []
+  }
+})
+
 
 const headers = [
-  { title: 'Empresa',        key: 'empresa',        align: 'center' },
+  { title: 'Empresa',        key: 'name',           align: 'center' },
   { title: 'CNPJ',           key: 'cnpj',           align: 'center' },
-  { title: 'Representante',  key: 'representante',  align: 'center' },
+  { title: 'Representante',  key: 'ownerName',      align: 'center' },
   { title: 'Status',         key: 'status',         align: 'center' },
   { title: 'Ações',          key: 'acoes',          align: 'center', sortable: false },
 ]
-
-const empresas = ref([
-  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
-  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
-  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
-  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
-  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
-  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
-  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
-  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
-  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
-  { empresa: "ABC Serviços", cnpj: "12.345.678/0001-90", representante: "Maria Silva", status: "Ativo" },
-  { empresa: "XPTO Ltda", cnpj: "98.765.432/0001-10", representante: "João Souza", status: "Inativo" },
-  { empresa: "Serviços Beta", cnpj: "45.678.123/0001-55", representante: "Ana Costa", status: "Ativo" },
-])
 
 const page = ref(1)
 const itemsPerPage = ref(5)
@@ -71,9 +72,9 @@ function onVerMais(item) {
           :headers="headers"
           :items="paginatedItems"
       >
-        <template #header.empresa="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.cnpj="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.representante="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.ownerName="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.status="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
 
