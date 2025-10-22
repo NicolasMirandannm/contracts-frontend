@@ -2,7 +2,7 @@ import BaseService from "../../BaseService.js";
 
 class UserService extends BaseService {
   constructor() {
-    super("contract-managers");
+    super("managers");
   }
 
   async signIn(email, password) {
@@ -10,7 +10,7 @@ class UserService extends BaseService {
     const response = await this.post("sign-in", credentials);
 
     localStorage.setItem("token", response.token);
-    localStorage.setItem("user", JSON.stringify(response.contractManagerId));
+    localStorage.setItem("user", JSON.stringify(response.managerId));
     return response;
   }
 
@@ -18,7 +18,7 @@ class UserService extends BaseService {
     const response = await this.post("sign-up", data);
 
     localStorage.setItem("token", response.token);
-    localStorage.setItem("user", JSON.stringify(response.contractManagerId));
+    localStorage.setItem("user", JSON.stringify(response.managerId));
     return response;
   }
 
