@@ -1,8 +1,9 @@
 <script setup>
 import HeaderEnterpriseComponent from "@/views/enterprise/HeaderEnterpriseComponent.vue";
-import {computed, onMounted, ref} from "vue";
+import { computed, onMounted, ref } from "vue";
 import EnterpriseFormComponent from "@/views/enterprise/EnterpriseFormComponent.vue";
 import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
+import DeleteDialog from "@/shared/DeleteDialog.vue";
 
 const empresas = ref([]);
 
@@ -44,6 +45,7 @@ const paginatedItems = computed(() => {
 const dialog = ref(false);
 const dialogMode = ref("create"); // create | edit | view
 const selectedEmpresa = ref(null);
+const deleteDialog = ref(false);
 
 function onCadastrar() {
   dialogMode.value = "create";
@@ -57,10 +59,28 @@ function onEditar(item) {
   dialog.value = true;
 }
 
+function onDelete(item) {
+  selectedEmpresa.value = { ...item };
+  deleteDialog.value = true;
+}
+
 function onVerMais(item) {
   dialogMode.value = "view";
   selectedEmpresa.value = { ...item };
   dialog.value = true;
+}
+
+const onDeleted = (id) => {
+  if (empresas.value && Array.isArray(empresas.value)) {
+    empresas.value = empresas.value.filter(e => e.id !== id);
+  } else {
+    console.warn('empresas.value está indefinido');
+  }
+  selectedEmpresa.value = null;
+}
+
+const onDeleteError = (err) => {
+  console.error(err);
 }
 </script>
 
@@ -88,7 +108,7 @@ function onVerMais(item) {
           <div class="d-flex justify-center ga-2">
             <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-eye" @click="onVerMais(item)">Ver Mais</v-btn>
             <v-btn size="small" variant="text" color="info" prepend-icon="mdi-pencil" @click="onEditar(item)">Editar</v-btn>
-            <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete">Excluir</v-btn>
+            <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete" @click="onDelete(item)">Excluir</v-btn>
           </div>
         </template>
 
@@ -117,6 +137,7 @@ function onVerMais(item) {
       </v-data-table>
     </v-card>
   </div>
+
   <v-dialog v-model="dialog" max-width="1000px">
     <EnterpriseFormComponent
         :mode="dialogMode"
@@ -125,4 +146,14 @@ function onVerMais(item) {
         @cancel="dialog = false"
     />
   </v-dialog>
+
+  <DeleteDialog
+      v-model="deleteDialog"
+      :item="selectedEmpresa"
+      :delete-service="EnterpriseService.delete.bind(EnterpriseService)"
+      success-message="Empresa excluída com sucesso!"
+      error-message="Erro ao excluir empresa. Tente novamente."
+      @deleted="onDeleted"
+      @delete-error="onDeleteError"
+  />
 </template>
