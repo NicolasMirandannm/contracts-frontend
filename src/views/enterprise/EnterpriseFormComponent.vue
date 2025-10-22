@@ -3,16 +3,16 @@ import { computed, ref, watch } from "vue";
 import CnpjInput from "@/components/input/CnpjInput.vue";
 import PhoneNumberInput from "@/components/input/PhoneNumberInput.vue";
 import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
+import {hasChanges} from "@/utils/compareObjects.js";
 
 const props = defineProps({
-  mode: { type: String, default: "create" }, // create | edit | view
+  mode: { type: String, default: "create" },
   modelValue: Object,
 });
 
 const emit = defineEmits(["update:modelValue", "submit", "cancel"]);
 const form = ref({ ...props.modelValue });
 
-// Atualiza o form ao mudar o modelValue recebido do pai
 watch(
     () => props.modelValue,
     (val) => {
@@ -24,14 +24,12 @@ watch(
 const isReadOnly = computed(() => props.mode === "view");
 const showStatus = computed(() => props.mode !== "create");
 
-// Snackbar para mensagens amigáveis
 const snackbar = ref({ show: false, color: "success", message: "" });
 
 function showSnackbar(message, color = "info") {
   snackbar.value = { show: true, color, message };
 }
 
-// Função de submit principal
 async function onSubmit() {
   if (props.mode === "create") {
     await createEmpresa();
@@ -40,21 +38,19 @@ async function onSubmit() {
   }
 }
 
-// Criação de nova empresa
 async function createEmpresa() {
   try {
     await EnterpriseService.create(form.value);
     showSnackbar("Empresa cadastrada com sucesso!", "success");
     setTimeout(() => {
       emit("submit");
-    }, 1500);
+    }, 500);
   } catch (error) {
     console.error(error);
     showSnackbar("Erro ao cadastrar empresa.", "error");
   }
 }
 
-// Atualização com verificação de alterações
 async function updateEmpresa() {
   const changed = hasChanges(props.modelValue, form.value);
 
@@ -68,27 +64,11 @@ async function updateEmpresa() {
     showSnackbar("Alterações salvas com sucesso!", "success");
     setTimeout(() => {
       emit("submit");
-    }, 1500);
+    }, 500);
   } catch (error) {
     console.error(error);
     showSnackbar("Erro ao salvar alterações.", "error");
   }
-}
-
-// 🔍 Compara dois objetos ignorando campos irrelevantes
-function hasChanges(original, updated) {
-  const ignoredFields = ["id", "createdAt", "updatedAt"];
-
-  const clean = (obj) => {
-    const clone = { ...obj };
-    ignoredFields.forEach((f) => delete clone[f]);
-    return clone;
-  };
-
-  const o = JSON.stringify(clean(original ?? {}));
-  const u = JSON.stringify(clean(updated ?? {}));
-
-  return o !== u;
 }
 </script>
 
@@ -206,7 +186,7 @@ function hasChanges(original, updated) {
     <v-snackbar
         v-model="snackbar.show"
         :color="snackbar.color"
-        timeout="3000"
+        timeout="4000"
         location="top right"
         variant="flat"
     >

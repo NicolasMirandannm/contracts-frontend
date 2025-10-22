@@ -7,7 +7,7 @@ import DeleteDialog from "@/shared/DeleteDialog.vue";
 
 const empresas = ref([]);
 
-onMounted(async () => {
+const loadEmpresas = async () => {
   try {
     const response = await EnterpriseService.findAll()
     empresas.value = Array.isArray(response)
@@ -17,8 +17,11 @@ onMounted(async () => {
     console.error('Erro ao buscar empresas:', error)
     empresas.value = []
   }
-})
+}
 
+onMounted(async () => {
+  await loadEmpresas();
+})
 
 const headers = [
   { title: 'Empresa',        key: 'name',           align: 'center' },
@@ -31,19 +34,16 @@ const headers = [
 const page = ref(1)
 const itemsPerPage = ref(5)
 
-// total de páginas
 const pageCount = computed(() => Math.ceil(empresas.value.length / itemsPerPage.value))
 
-// itens que realmente serão exibidos na página atual
 const paginatedItems = computed(() => {
   const start = (page.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
   return empresas.value.slice(start, end)
 })
 
-
 const dialog = ref(false);
-const dialogMode = ref("create"); // create | edit | view
+const dialogMode = ref("create");
 const selectedEmpresa = ref(null);
 const deleteDialog = ref(false);
 
@@ -70,17 +70,30 @@ function onVerMais(item) {
   dialog.value = true;
 }
 
-const onDeleted = (id) => {
-  if (empresas.value && Array.isArray(empresas.value)) {
-    empresas.value = empresas.value.filter(e => e.id !== id);
-  } else {
-    console.warn('empresas.value está indefinido');
+const onDeleted = async (id) => {
+  try {
+    await loadEmpresas();
+
+    if (paginatedItems.value.length === 0 && page.value > 1) {
+      page.value = 1;
+    }
+  } catch (error) {
+    console.error('Erro ao recarregar empresas:', error);
   }
   selectedEmpresa.value = null;
 }
 
 const onDeleteError = (err) => {
   console.error(err);
+}
+
+const onDialogSubmit = async () => {
+  dialog.value = false;
+  await loadEmpresas();
+}
+
+const onDialogCancel = () => {
+  dialog.value = false;
 }
 </script>
 
@@ -142,8 +155,8 @@ const onDeleteError = (err) => {
     <EnterpriseFormComponent
         :mode="dialogMode"
         :model-value="selectedEmpresa"
-        @submit="dialog = false"
-        @cancel="dialog = false"
+        @submit="onDialogSubmit"
+        @cancel="onDialogCancel"
     />
   </v-dialog>
 
