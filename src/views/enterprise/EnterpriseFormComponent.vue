@@ -44,8 +44,10 @@ async function onSubmit() {
 async function createEmpresa() {
   try {
     await EnterpriseService.create(form.value);
-    emit("submit");
     showSnackbar("Empresa cadastrada com sucesso!", "success");
+    setTimeout(() => {
+      emit("submit");
+    }, 1500);
   } catch (error) {
     console.error(error);
     showSnackbar("Erro ao cadastrar empresa.", "error");
@@ -63,8 +65,10 @@ async function updateEmpresa() {
 
   try {
     await EnterpriseService.update(form.value.id, form.value);
-    emit("submit");
     showSnackbar("Alterações salvas com sucesso!", "success");
+    setTimeout(() => {
+      emit("submit");
+    }, 1500);
   } catch (error) {
     console.error(error);
     showSnackbar("Erro ao salvar alterações.", "error");
@@ -203,7 +207,7 @@ function hasChanges(original, updated) {
         v-model="snackbar.show"
         :color="snackbar.color"
         timeout="3000"
-        location="bottom"
+        location="top right"
         variant="flat"
     >
       {{ snackbar.message }}
