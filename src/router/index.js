@@ -8,7 +8,7 @@ import SignUp from "@/views/auth/SignUp.vue";
 import ForgotPassword from "@/views/auth/ForgotPassword.vue";
 import NotFound from "@/views/not-found/NotFound.vue";
 import { zhHans } from "vuetify/locale";
-import UserService from "@/api/services/contract-manager/UserService.js";
+import UserService from "@/api/services/manager/UserService.js";
 
 
 const routes = [

@@ -120,8 +120,8 @@ import { ref } from "vue";
 import PhoneNumberInput from "@/components/input/PhoneNumberInput.vue";
 import { useRouter } from "vue-router";
 import RouteConstants from "@/router/RouteConstants.js";
-import UserService from "@/api/services/contract-manager/UserService.js";
-import SignUpDto from "@/api/services/contract-manager/SignUpDto.js";
+import UserService from "@/api/services/manager/UserService.js";
+import SignUpDto from "@/api/services/manager/SignUpDto.js";
 import { useAlert } from "@/composables/useAlert.js";
 
 const router = useRouter();

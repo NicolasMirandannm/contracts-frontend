@@ -72,7 +72,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import Enterprise from "@/views/enterprise/Enterprise.vue";
-import UserService from "@/api/services/contract-manager/UserService.js";
+import UserService from "@/api/services/manager/UserService.js";
 import { useRouter } from "vue-router";
 import { useAlert } from "@/composables/useAlert.js";
 import RouteConstants from "@/router/RouteConstants.js";

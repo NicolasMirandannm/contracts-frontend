@@ -102,7 +102,7 @@ import { ref } from 'vue'
 import { useRouter } from "vue-router";
 import RouteConstants from "@/router/RouteConstants.js";
 import { useAlert } from "@/composables/useAlert.js";
-import UserService from "@/api/services/contract-manager/UserService.js";
+import UserService from "@/api/services/manager/UserService.js";
 
 const router = useRouter();
 const { showAlert } = useAlert()
