@@ -53,9 +53,7 @@
           </v-window-item>
 
           <v-window-item value="diaristas">
-            <v-card rounded="xl" elevation="1" class="pa-4">
-              <v-card-title class="font-weight-bold">TODO</v-card-title>
-            </v-card>
+            <DayLaborer />
           </v-window-item>
 
           <v-window-item value="diarias">
@@ -76,6 +74,7 @@ import UserService from "@/api/services/manager/UserService.js";
 import { useRouter } from "vue-router";
 import { useAlert } from "@/composables/useAlert.js";
 import RouteConstants from "@/router/RouteConstants.js";
+import DayLaborer from "@/views/day-laborer/DayLaborer.vue";
 
 const router = useRouter();
 const { showAlert } = useAlert();

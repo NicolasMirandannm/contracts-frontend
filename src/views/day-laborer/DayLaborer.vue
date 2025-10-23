@@ -1,32 +1,32 @@
 <script setup>
-import HeaderEnterpriseComponent from "@/views/enterprise/HeaderEnterpriseComponent.vue";
 import { computed, onMounted, ref } from "vue";
-import EnterpriseFormComponent from "@/views/enterprise/EnterpriseFormComponent.vue";
-import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
+import HeaderDayLaborerComponent from "@/views/day-laborer/HeaderDayLaborerComponent.vue";
+import DayLaborerFormComponent from "@/views/day-laborer/DayLaborerFormComponent.vue";
+import DayLaborerService from "@/api/services/day-laborer/DayLaborerService.js";
 
-const empresas = ref([]);
+const diaristas = ref([]);
 
-const loadEmpresas = async () => {
+const loadDiaristas = async () => {
   try {
-    const response = await EnterpriseService.findAll()
-    empresas.value = Array.isArray(response)
+    const response = await DayLaborerService.findAll()
+    diaristas.value = Array.isArray(response)
         ? response
         : response?.content || []
   } catch (error) {
     console.error('Erro ao buscar empresas:', error)
-    empresas.value = []
+    diaristas.value = []
   }
 }
 
 onMounted(async () => {
-  await loadEmpresas();
+  await loadDiaristas();
 })
 
 const headers = [
-  { title: 'Empresa',        key: 'name',           align: 'center' },
-  { title: 'CNPJ',           key: 'cnpj',           align: 'center' },
-  { title: 'Representante',  key: 'ownerName',      align: 'center' },
+  { title: 'Nome',           key: 'name',           align: 'center' },
+  { title: 'CPF',            key: 'cpf',            align: 'center' },
+  { title: 'Contato',        key: 'phoneNumber',    align: 'center' },
   { title: 'Status',         key: 'status',         align: 'center' },
   { title: 'Ações',          key: 'acoes',          align: 'center', sortable: false },
 ]
@@ -34,53 +34,53 @@ const headers = [
 const page = ref(1)
 const itemsPerPage = ref(5)
 
-const pageCount = computed(() => Math.ceil(empresas.value.length / itemsPerPage.value))
+const pageCount = computed(() => Math.ceil(diaristas.value.length / itemsPerPage.value))
 
 const paginatedItems = computed(() => {
   const start = (page.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
-  return empresas.value.slice(start, end)
+  return diaristas.value.slice(start, end)
 })
 
 const dialog = ref(false);
 const dialogMode = ref("create");
-const selectedEmpresa = ref(null);
+const selectedDiarista = ref(null);
 const deleteDialog = ref(false);
 
 function onCadastrar() {
   dialogMode.value = "create";
-  selectedEmpresa.value = {};
+  selectedDiarista.value = {};
   dialog.value = true;
 }
 
 function onEditar(item) {
   dialogMode.value = "edit";
-  selectedEmpresa.value = { ...item };
+  selectedDiarista.value = { ...item };
   dialog.value = true;
 }
 
 function onDelete(item) {
-  selectedEmpresa.value = { ...item };
+  selectedDiarista.value = { ...item };
   deleteDialog.value = true;
 }
 
 function onVerMais(item) {
   dialogMode.value = "view";
-  selectedEmpresa.value = { ...item };
+  selectedDiarista.value = { ...item };
   dialog.value = true;
 }
 
 const onDeleted = async (id) => {
   try {
-    await loadEmpresas();
+    await loadDiaristas();
 
     if (paginatedItems.value.length === 0 && page.value > 1) {
       page.value = 1;
     }
   } catch (error) {
-    console.error('Erro ao recarregar empresas:', error);
+    console.error('Erro ao recarregar diaristas:', error);
   }
-  selectedEmpresa.value = null;
+  selectedDiarista.value = null;
 }
 
 const onDeleteError = (err) => {
@@ -89,7 +89,7 @@ const onDeleteError = (err) => {
 
 const onDialogSubmit = async () => {
   dialog.value = false;
-  await loadEmpresas();
+  await loadDiaristas();
 }
 
 const onDialogCancel = () => {
@@ -99,20 +99,20 @@ const onDialogCancel = () => {
 
 <template>
   <div class="w-100 h-100">
-    <HeaderEnterpriseComponent class="mb-4" @cadastrar="onCadastrar" />
+    <HeaderDayLaborerComponent class="mb-4" @cadastrar="onCadastrar" />
     <v-card elevation="1" class="d-flex flex-column flex-grow-1 w-100 shadow-sm" rounded="xl">
       <v-data-table
           :headers="headers"
           :items="paginatedItems"
       >
         <template #header.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.cnpj="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.ownerName="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.cpf="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.phoneNumber="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.status="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
 
         <template #item.status="{ item }">
-          <v-chip :color="item.status === 'ATIVO' ? 'success' : 'error'" variant="tonal" size="small">
+          <v-chip :color="item.status === 'Ativo' ? 'success' : 'error'" variant="tonal" size="small">
             {{ item.status }}
           </v-chip>
         </template>
@@ -128,8 +128,8 @@ const onDialogCancel = () => {
         <template #bottom>
           <div class="d-flex justify-space-between align-center px-4 py-2 w-100">
             <div>{{ (page - 1) * itemsPerPage + 1 }} -
-              {{ Math.min(page * itemsPerPage, empresas.length) }}
-              de {{ empresas.length }} itens
+              {{ Math.min(page * itemsPerPage, diaristas.length) }}
+              de {{ diaristas.length }} itens
             </div>
             <v-pagination
                 v-model="page"
@@ -152,9 +152,9 @@ const onDialogCancel = () => {
   </div>
 
   <v-dialog v-model="dialog" max-width="1000px">
-    <EnterpriseFormComponent
+    <DayLaborerFormComponent
         :mode="dialogMode"
-        :model-value="selectedEmpresa"
+        :model-value="selectedDiarista"
         @submit="onDialogSubmit"
         @cancel="onDialogCancel"
     />
@@ -162,10 +162,10 @@ const onDialogCancel = () => {
 
   <DeleteDialog
       v-model="deleteDialog"
-      :item="selectedEmpresa"
-      :delete-service="EnterpriseService.delete.bind(EnterpriseService)"
-      success-message="Empresa excluída com sucesso!"
-      error-message="Erro ao excluir empresa. Tente novamente."
+      :item="selectedDiarista"
+      :delete-service="DayLaborerService.delete.bind(DayLaborerService)"
+      success-message="Diarista excluído com sucesso!"
+      error-message="Erro ao excluir diarista. Tente novamente."
       @deleted="onDeleted"
       @delete-error="onDeleteError"
   />
