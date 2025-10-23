@@ -108,7 +108,7 @@ async function updateDiarista() {
 
         <CpfInput v-model="form.cpf" :readonly="isReadOnly" :required="true" />
 
-        <PhoneNumberInput v-model="form.ownerPhone" :readonly="isReadOnly" :required="true" />
+        <PhoneNumberInput v-model="form.phoneNumber" :readonly="isReadOnly" :required="true" />
 
         <v-text-field
             v-model="form.pixKey"
@@ -127,7 +127,12 @@ async function updateDiarista() {
             label="Status"
             density="comfortable"
             variant="outlined"
-            :items="['Ativo', 'Inativo']"
+            :items="[
+              { title: 'Ativo', value: 'ATIVO' },
+              { title: 'Inativo', value: 'INATIVO' }
+            ]"
+            item-title="title"
+            item-value="value"
             :readonly="isReadOnly"
             :disabled="isReadOnly"
         />

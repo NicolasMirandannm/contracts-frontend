@@ -4,6 +4,7 @@ import CnpjInput from "@/components/input/CnpjInput.vue";
 import PhoneNumberInput from "@/components/input/PhoneNumberInput.vue";
 import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
 import {hasChanges} from "@/utils/compareObjects.js";
+import MoneyInput from "@/components/input/MoneyInput.vue";
 
 const props = defineProps({
   mode: { type: String, default: "create" },
@@ -11,7 +12,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue", "submit", "cancel"]);
-const form = ref({ ...props.modelValue });
+const form = ref({
+  ...props.modelValue,
+  baseDailyRate: props.modelValue?.baseDailyRate || 0,
+});
+
 
 watch(
     () => props.modelValue,
@@ -139,7 +144,12 @@ async function updateEmpresa() {
             label="Status"
             density="comfortable"
             variant="outlined"
-            :items="['Ativo', 'Inativo']"
+            :items="[
+              { title: 'Ativo', value: 'ATIVO' },
+              { title: 'Inativo', value: 'INATIVO' }
+            ]"
+            item-title="title"
+            item-value="value"
             :readonly="isReadOnly"
             :disabled="isReadOnly"
         />
@@ -152,6 +162,14 @@ async function updateEmpresa() {
             :readonly="isReadOnly"
             :disabled="isReadOnly"
             :rules="[v => !!v || 'Campo obrigatório']"
+            required
+        />
+
+        <MoneyInput
+            v-model="form.baseDailyRate"
+            label="Valor Base da Diária"
+            :readonly="isReadOnly"
+            :disabled="isReadOnly"
             required
         />
 

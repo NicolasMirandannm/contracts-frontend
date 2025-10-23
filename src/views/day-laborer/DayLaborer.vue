@@ -112,7 +112,7 @@ const onDialogCancel = () => {
         <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
 
         <template #item.status="{ item }">
-          <v-chip :color="item.status === 'Ativo' ? 'success' : 'error'" variant="tonal" size="small">
+          <v-chip :color="item.status === 'ATIVO' ? 'success' : 'error'" variant="tonal" size="small">
             {{ item.status }}
           </v-chip>
         </template>
