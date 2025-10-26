@@ -5,7 +5,7 @@
         <!-- Campo Nome -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.nome"
+              v-model="filtros.nomeDiarista"
               label="Informe o nome do diarista..."
               variant="outlined"
               density="comfortable"
@@ -17,8 +17,8 @@
         <!-- Campo CNPJ -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.cpf"
-              label="Informe o CPF do diarista..."
+              v-model="filtros.nomeEmpresa"
+              label="Informe o nome da empresa..."
               variant="outlined"
               density="comfortable"
               clearable
@@ -28,8 +28,8 @@
 
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.cnpj"
-              label="Informe o contato..."
+              v-model="filtros.dataDiaria"
+              label="Informe a data da diária..."
               variant="outlined"
               density="comfortable"
               clearable
@@ -47,9 +47,9 @@
               mandatory
               class="w-100"
           >
-            <v-btn value="ativo">Ativo</v-btn>
-            <v-btn value="inativo">Inativo</v-btn>
-            <v-btn value="todos">Todos</v-btn>
+            <v-btn value="ativo">Pagas</v-btn>
+            <v-btn value="inativo">Não pagas</v-btn>
+            <v-btn value="todos">Todas</v-btn>
           </v-btn-toggle>
         </v-col>
 

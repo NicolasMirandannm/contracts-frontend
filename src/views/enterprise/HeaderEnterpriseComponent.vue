@@ -6,7 +6,7 @@
         <v-col cols="12" sm="4" md="2">
           <v-text-field
               v-model="filtros.nome"
-              label="Digite o nome da empresa..."
+              label="Informe o nome da empresa..."
               variant="outlined"
               density="comfortable"
               clearable
@@ -18,7 +18,7 @@
         <v-col cols="12" sm="4" md="2">
           <v-text-field
               v-model="filtros.cnpj"
-              label="Digitar o CNPJ da empresa..."
+              label="Informe o CNPJ da empresa..."
               variant="outlined"
               density="comfortable"
               clearable
@@ -29,7 +29,7 @@
         <v-col cols="12" sm="4" md="2">
           <v-text-field
               v-model="filtros.cnpj"
-              label="Digitar o nome do representante..."
+              label="Informe o nome do representante..."
               variant="outlined"
               density="comfortable"
               clearable

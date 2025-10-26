@@ -42,24 +42,22 @@
             align-tabs="center"
             grow
         >
+          <v-tab value="diarias">Diárias</v-tab>
           <v-tab value="empresas">Empresas</v-tab>
           <v-tab value="diaristas">Diaristas</v-tab>
-          <v-tab value="diarias">Diárias</v-tab>
         </v-tabs>
 
         <v-window v-model="selectedTab" class="mt-4" :touch="false">
+          <v-window-item value="diarias">
+            <DailyWage />
+          </v-window-item>
+
           <v-window-item value="empresas">
             <Enterprise />
           </v-window-item>
 
           <v-window-item value="diaristas">
             <DayLaborer />
-          </v-window-item>
-
-          <v-window-item value="diarias">
-            <v-card rounded="xl" elevation="1" class="pa-4">
-              <v-card-title class="font-weight-bold">TODO</v-card-title>
-            </v-card>
           </v-window-item>
         </v-window>
       </v-container>
@@ -75,12 +73,13 @@ import { useRouter } from "vue-router";
 import { useAlert } from "@/composables/useAlert.js";
 import RouteConstants from "@/router/RouteConstants.js";
 import DayLaborer from "@/views/day-laborer/DayLaborer.vue";
+import DailyWage from "@/views/daily-wage/DailyWage.vue";
 
 const router = useRouter();
 const { showAlert } = useAlert();
 
 
-const selectedTab = ref("empresas");
+const selectedTab = ref("diarias");
 
 const resumo = [
   { titulo: "Total Empresas", valor: "12", cor: "text-primary" },
