@@ -31,6 +31,7 @@ const isReadOnly = computed(() => props.mode === "view");
 const showStatus = computed(() => props.mode !== "create");
 const formRef = ref(null);
 const formValid = ref(false);
+const isSubmitting = ref(false);
 const hasDiarists = computed(() => selectedDiarists.value.length > 0);
 
 function validateEndHour(value) {
@@ -46,6 +47,16 @@ function validateEndHour(value) {
 
   return endMinutes > startMinutes || 'A hora final deve ser maior que a hora inicial';
 }
+
+const formatToLocalDate = (dateString) => {
+  if (!dateString) return null;
+  return dateString;
+};
+
+const formatToLocalTime = (timeString) => {
+  if (!timeString) return null;
+  return timeString;
+};
 
 const canSelectDiarist = computed(() =>
     form.value.workDay && form.value.startHour && form.value.endHour && validateEndHour(form.value.endHour) === true
@@ -96,9 +107,14 @@ function addDiarist(diaristId) {
     selectedDiarists.value.push({
       id: diarist.id,
       name: diarist.name,
+      cpf: diarist.cpf,
+      phoneNumber: diarist.phoneNumber,
+      status: diarist.status,
+      pixKey: diarist.pixKey,
+      version: diarist.version,
       paymentValue: 0,
       bonus: 0,
-      deduction: 0,
+      deduction: 0
     });
   }
   form.value.dayLaborer = null;
@@ -118,31 +134,53 @@ function showSnackbar(message, color = "info") {
 }
 
 async function onSubmit() {
-  if (form.value.startHour && form.value.endHour) {
-    const validation = validateEndHour(form.value.endHour);
-    if (validation !== true) {
-      showSnackbar(validation, "error");
-      return;
+
+  try {
+    const dailyWageDto = {
+      enterprise: { id: form.value.enterprise },
+      dayLaborer: selectedDiarists.value.map(diarist => ({
+        id: diarist.id,
+        name: diarist.name,
+        cpf: diarist.cpf,
+        phoneNumber: diarist.phoneNumber,
+        status: diarist.status,
+        pixKey: diarist.pixKey,
+        version: diarist.version,
+        paymentValue: diarist.paymentValue || 0,
+        bonus: diarist.bonus || 0,
+        deduction: diarist.deduction || 0
+      })),
+      workDate: formatToLocalDate(form.value.workDay),
+      startHour: formatToLocalTime(form.value.startHour),
+      endHour: formatToLocalTime(form.value.endHour),
+      baseDailyRate: form.value.baseDailyRate,
+      notes: form.value.notes,
+      paymentStatus: 'NAO_PAGO'
+    };
+
+    if (props.mode === "create") {
+      await createDiaria(dailyWageDto);
+    } else if (props.mode === "edit") {
+      await updateDiaria(dailyWageDto);
     }
-  }
 
-  form.value.dayLaborer = selectedDiarists.value;
-
-  if (props.mode === "create") {
-    await createDiaria();
-  } else if (props.mode === "edit") {
-    await updateDiaria();
+  } catch (error) {
+    console.error(error);
+    showSnackbar("Erro ao processar diárias.", "error");
+  } finally {
+    isSubmitting.value = false;
   }
 }
 
-async function createDiaria() {
+async function createDiaria(dailyWageDto) {
   try {
-    await DailyWageService.create(form.value);
-    showSnackbar("Diária cadastrada com sucesso!", "success");
+    await DailyWageService.create(dailyWageDto);
+    showSnackbar("Diárias cadastradas com sucesso!", "success");
     setTimeout(() => emit("submit"), 500);
   } catch (error) {
     console.error(error);
-    showSnackbar("Erro ao cadastrar diária.", "error");
+    showSnackbar("Erro ao cadastrar diárias.", "error");
+    throw error;
   }
 }
 

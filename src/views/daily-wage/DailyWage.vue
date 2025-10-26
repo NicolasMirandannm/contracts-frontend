@@ -1,7 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
-import DayLaborerService from "@/api/services/day-laborer/DayLaborerService.js";
 import HeaderDailyWageComponent from "@/views/daily-wage/HeaderDailyWageComponent.vue";
 import DailyWageFormComponent from "@/views/daily-wage/DailyWageFormComponent.vue";
 import DailyWageService from "@/api/services/daily-wage/DailyWageService.js";
@@ -24,12 +23,40 @@ onMounted(async () => {
   await loadDiarias();
 })
 
+
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString + 'T00:00:00');
+  return date.toLocaleDateString('pt-BR');
+};
+
+const formatTimeRange = (startHour, endHour) => {
+  if (!startHour || !endHour) return '-';
+  const formatTime = (timeString) => {
+    return timeString.substring(0, 5);
+  };
+  return `${formatTime(startHour)} - ${formatTime(endHour)}`;
+};
+
+const formatCurrency = (value) => {
+  if (value === null || value === undefined) return 'R$ 0,00';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(value);
+};
+
+const getDiaristaName = (dayLaborer) => {
+  if (!dayLaborer || !dayLaborer.length) return '-';
+  return dayLaborer[0].name;
+};
+
 const headers = [
   { title: 'Empresa',        key: 'enterprise.name',           align: 'center' },
-  { title: 'Diarista',       key: 'dayLaborer.name',           align: 'center' },
-  { title: 'Dia',            key: 'workDate',                  align: 'center' },
-  { title: 'Hora',           key: 'workHour',                  align: 'center' },
-  { title: 'Valor',          key: 'paymentValue',              align: 'center' },
+  { title: 'Diarista',       key: 'diarista',                  align: 'center' },
+  { title: 'Dia',            key: 'workDateFormatted',         align: 'center' },
+  { title: 'Hora',           key: 'horaFormatada',             align: 'center' },
+  { title: 'Valor',          key: 'valorFormatado',            align: 'center' },
   { title: 'Ações',          key: 'acoes',                     align: 'center', sortable: false },
 ]
 
@@ -38,10 +65,20 @@ const itemsPerPage = ref(5)
 
 const pageCount = computed(() => Math.ceil(diarias.value.length / itemsPerPage.value))
 
+const diariasFormatadas = computed(() => {
+  return diarias.value.map(diaria => ({
+    ...diaria,
+    diarista: getDiaristaName(diaria.dayLaborer),
+    workDateFormatted: formatDate(diaria.workDate),
+    horaFormatada: formatTimeRange(diaria.startHour, diaria.endHour),
+    valorFormatado: formatCurrency(diaria.paymentValue)
+  }));
+});
+
 const paginatedItems = computed(() => {
   const start = (page.value - 1) * itemsPerPage.value
   const end = start + itemsPerPage.value
-  return diarias.value.slice(start, end)
+  return diariasFormatadas.value.slice(start, end)
 })
 
 const dialog = ref(false);
@@ -108,11 +145,31 @@ const onDialogCancel = () => {
           :items="paginatedItems"
       >
         <template #header.enterprise.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.dayLaborer.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.workDate="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.workHour="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.paymentValue="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.diarista="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.workDateFormatted="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.horaFormatada="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.valorFormatado="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+
+        <template #item.enterprise.name="{ item }">
+          {{ item.enterprise?.name || '-' }}
+        </template>
+
+        <template #item.diarista="{ item }">
+          {{ item.diarista }}
+        </template>
+
+        <template #item.workDateFormatted="{ item }">
+          {{ item.workDateFormatted }}
+        </template>
+
+        <template #item.horaFormatada="{ item }">
+          {{ item.horaFormatada }}
+        </template>
+
+        <template #item.valorFormatado="{ item }">
+          <span>{{ item.valorFormatado }}</span>
+        </template>
 
         <template #item.status="{ item }">
           <v-chip :color="item.status === 'ATIVO' ? 'success' : 'error'" variant="tonal" size="small">
@@ -166,9 +223,9 @@ const onDialogCancel = () => {
   <DeleteDialog
       v-model="deleteDialog"
       :item="selectedDiaria"
-      :delete-service="DayLaborerService.delete.bind(DayLaborerService)"
-      success-message="Diaria excluída com sucesso!"
-      error-message="Erro ao excluir diaria. Tente novamente."
+      :delete-service="DailyWageService.delete.bind(DailyWageService)"
+      success-message="Diária excluída com sucesso!"
+      error-message="Erro ao excluir diária. Tente novamente."
       @deleted="onDeleted"
       @delete-error="onDeleteError"
   />
