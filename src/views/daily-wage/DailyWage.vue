@@ -23,7 +23,6 @@ onMounted(async () => {
   await loadDiarias();
 })
 
-
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString + 'T00:00:00');
@@ -57,6 +56,7 @@ const headers = [
   { title: 'Dia',            key: 'workDateFormatted',         align: 'center' },
   { title: 'Hora',           key: 'horaFormatada',             align: 'center' },
   { title: 'Valor',          key: 'valorFormatado',            align: 'center' },
+  { title: 'Status',         key: 'paymentStatus',             align: 'center' },
   { title: 'Ações',          key: 'acoes',                     align: 'center', sortable: false },
 ]
 
@@ -133,6 +133,7 @@ const onDialogSubmit = async () => {
 
 const onDialogCancel = () => {
   dialog.value = false;
+  selectedDiaria.value = null;
 }
 </script>
 
@@ -149,6 +150,7 @@ const onDialogCancel = () => {
         <template #header.workDateFormatted="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.horaFormatada="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.valorFormatado="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.paymentStatus="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
 
         <template #item.enterprise.name="{ item }">
@@ -171,9 +173,9 @@ const onDialogCancel = () => {
           <span>{{ item.valorFormatado }}</span>
         </template>
 
-        <template #item.status="{ item }">
-          <v-chip :color="item.status === 'ATIVO' ? 'success' : 'error'" variant="tonal" size="small">
-            {{ item.status }}
+        <template #item.paymentStatus="{ item }">
+          <v-chip :color="item.paymentStatus === 'PAGO' ? 'success' : 'error'" variant="tonal" size="small">
+            {{ item.paymentStatus === 'PAGO' ? 'Paga' : 'Não Paga' }}
           </v-chip>
         </template>
 

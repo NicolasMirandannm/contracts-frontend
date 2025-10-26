@@ -28,7 +28,6 @@ const selectedDiarists = ref([]);
 const snackbar = ref({ show: false, color: "success", message: "" });
 
 const isReadOnly = computed(() => props.mode === "view");
-const showStatus = computed(() => props.mode !== "create");
 const formRef = ref(null);
 const formValid = ref(false);
 const isSubmitting = ref(false);
@@ -142,8 +141,7 @@ function addDiarist(diaristId) {
       phoneNumber: diarist.phoneNumber,
       status: diarist.status,
       pixKey: diarist.pixKey,
-      version: diarist.version,
-      paymentValue: form.value.baseDailyRate || 0,
+      paymentValue: diarist.paymentValue || 0,
       bonus: 0,
       deduction: 0
     });
@@ -206,15 +204,30 @@ async function onSubmit() {
       };
       await createDiaria(dailyWageDto);
     } else if (props.mode === "edit") {
-      const updateDto = {
+      const dailyWageDto = {
+        id: form.value.id,
+        enterprise: { id: form.value.enterprise },
+        dayLaborer: selectedDiarists.value.map(diarist => ({
+          id: diarist.id,
+          name: diarist.name,
+          cpf: diarist.cpf,
+          phoneNumber: diarist.phoneNumber,
+          status: diarist.status,
+          pixKey: diarist.pixKey,
+          version: diarist.version,
+        })),
+        workDate: formatToLocalDate(form.value.workDay),
+        startHour: formatToLocalTime(form.value.startHour),
+        endHour: formatToLocalTime(form.value.endHour),
         baseDailyRate: form.value.baseDailyRate,
         bonus: selectedDiarists.value[0]?.bonus || 0,
         deduction: selectedDiarists.value[0]?.deduction || 0,
         paymentValue: selectedDiarists.value[0]?.paymentValue || 0,
         notes: form.value.notes,
-        paymentStatus: form.value.paymentStatus
+        paymentStatus: form.value.paymentStatus,
+        version: form.value.version
       };
-      await updateDiaria(updateDto);
+      await updateDiaria(dailyWageDto);
     }
 
   } catch (error) {
@@ -237,15 +250,15 @@ async function createDiaria(dailyWageDto) {
   }
 }
 
-async function updateDiaria(updateDto) {
-  const changed = hasChanges(props.modelValue, { ...form.value, ...updateDto });
+async function updateDiaria(dailyWageDto) {
+  const changed = hasChanges(props.modelValue, dailyWageDto);
   if (!changed) {
     showSnackbar("Nenhuma modificação foi feita.", "info");
     return;
   }
 
   try {
-    await DailyWageService.update(form.value.id, updateDto);
+    await DailyWageService.update(form.value.id, dailyWageDto);
     showSnackbar("Alterações salvas com sucesso!", "success");
     setTimeout(() => emit("submit"), 500);
   } catch (error) {
@@ -376,7 +389,6 @@ const loadEmpresas = async () => {
           </v-col>
         </v-row>
 
-        <!-- Select de diarista só aparece no modo create -->
         <v-select
             v-if="showDiaristSelect && canSelectDiarist"
             v-model="form.dayLaborer"
