@@ -34,6 +34,9 @@ const formValid = ref(false);
 const isSubmitting = ref(false);
 const hasDiarists = computed(() => selectedDiarists.value.length > 0);
 
+const showDiaristSelect = computed(() => props.mode === "create");
+const showDeleteAction = computed(() => props.mode === "create");
+
 function validateEndHour(value) {
   if (!form.value.startHour || !value) return true;
 
@@ -55,24 +58,52 @@ const formatToLocalDate = (dateString) => {
 
 const formatToLocalTime = (timeString) => {
   if (!timeString) return null;
-  return timeString;
+  return timeString.substring(0, 5);
 };
 
 const canSelectDiarist = computed(() =>
-    form.value.workDay && form.value.startHour && form.value.endHour && validateEndHour(form.value.endHour) === true
+    props.mode === "create" &&
+    form.value.workDay &&
+    form.value.startHour &&
+    form.value.endHour &&
+    validateEndHour(form.value.endHour) === true
 );
+
 
 watch(
     () => props.modelValue,
     (val) => {
-      form.value = { ...val };
+      if (val) {
+        form.value = {
+          ...val,
+          enterprise: val.enterprise?.id || null,
+          workDay: val.workDate ? val.workDate.substring(0, 10) : null,
+          startHour: val.startHour ? val.startHour.substring(0, 5) : null,
+          endHour: val.endHour ? val.endHour.substring(0, 5) : null,
+        };
+
+        if (val.dayLaborer && val.dayLaborer.length > 0) {
+          selectedDiarists.value = val.dayLaborer.map(diarist => ({
+            id: diarist.id,
+            name: diarist.name,
+            cpf: diarist.cpf,
+            phoneNumber: diarist.phoneNumber,
+            status: diarist.status,
+            pixKey: diarist.pixKey,
+            version: diarist.version,
+            paymentValue: val.paymentValue || 0,
+            bonus: val.bonus || 0,
+            deduction: val.deduction || 0
+          }));
+        }
+      }
     },
-    { deep: true }
+    { immediate: true, deep: true }
 );
 
 watch(
     () => form.value.startHour,
-    (newStartHour, oldStartHour) => {
+    (newStartHour) => {
       if (newStartHour && form.value.endHour) {
         const startToMinutes = (time) => {
           const [hours, minutes] = time.split(':').map(Number);
@@ -92,7 +123,7 @@ watch(
 watch(
     () => form.value.enterprise,
     (newEnterpriseId) => {
-      if (newEnterpriseId) {
+      if (newEnterpriseId && props.mode === "create") {
         const empresaSelecionada = empresas.value.find(emp => emp.id === newEnterpriseId);
         if (empresaSelecionada && empresaSelecionada.baseDailyRate) {
           form.value.baseDailyRate = empresaSelecionada.baseDailyRate;
@@ -112,7 +143,7 @@ function addDiarist(diaristId) {
       status: diarist.status,
       pixKey: diarist.pixKey,
       version: diarist.version,
-      paymentValue: 0,
+      paymentValue: form.value.baseDailyRate || 0,
       bonus: 0,
       deduction: 0
     });
@@ -134,34 +165,56 @@ function showSnackbar(message, color = "info") {
 }
 
 async function onSubmit() {
+  const { valid } = await formRef.value?.validate() || { valid: true };
+  if (!valid) {
+    showSnackbar("Por favor, corrija os erros do formulário", "error");
+    return;
+  }
+
+  if (form.value.startHour && form.value.endHour) {
+    const validation = validateEndHour(form.value.endHour);
+    if (validation !== true) {
+      showSnackbar(validation, "error");
+      return;
+    }
+  }
+
+  isSubmitting.value = true;
 
   try {
-    const dailyWageDto = {
-      enterprise: { id: form.value.enterprise },
-      dayLaborer: selectedDiarists.value.map(diarist => ({
-        id: diarist.id,
-        name: diarist.name,
-        cpf: diarist.cpf,
-        phoneNumber: diarist.phoneNumber,
-        status: diarist.status,
-        pixKey: diarist.pixKey,
-        version: diarist.version,
-        paymentValue: diarist.paymentValue || 0,
-        bonus: diarist.bonus || 0,
-        deduction: diarist.deduction || 0
-      })),
-      workDate: formatToLocalDate(form.value.workDay),
-      startHour: formatToLocalTime(form.value.startHour),
-      endHour: formatToLocalTime(form.value.endHour),
-      baseDailyRate: form.value.baseDailyRate,
-      notes: form.value.notes,
-      paymentStatus: 'NAO_PAGO'
-    };
-
     if (props.mode === "create") {
+      const dailyWageDto = {
+        enterprise: { id: form.value.enterprise },
+        dayLaborer: selectedDiarists.value.map(diarist => ({
+          id: diarist.id,
+          name: diarist.name,
+          cpf: diarist.cpf,
+          phoneNumber: diarist.phoneNumber,
+          status: diarist.status,
+          pixKey: diarist.pixKey,
+          version: diarist.version,
+          paymentValue: diarist.paymentValue || 0,
+          bonus: diarist.bonus || 0,
+          deduction: diarist.deduction || 0
+        })),
+        workDate: formatToLocalDate(form.value.workDay),
+        startHour: formatToLocalTime(form.value.startHour),
+        endHour: formatToLocalTime(form.value.endHour),
+        baseDailyRate: form.value.baseDailyRate,
+        notes: form.value.notes,
+        paymentStatus: 'NAO_PAGO'
+      };
       await createDiaria(dailyWageDto);
     } else if (props.mode === "edit") {
-      await updateDiaria(dailyWageDto);
+      const updateDto = {
+        baseDailyRate: form.value.baseDailyRate,
+        bonus: selectedDiarists.value[0]?.bonus || 0,
+        deduction: selectedDiarists.value[0]?.deduction || 0,
+        paymentValue: selectedDiarists.value[0]?.paymentValue || 0,
+        notes: form.value.notes,
+        paymentStatus: form.value.paymentStatus
+      };
+      await updateDiaria(updateDto);
     }
 
   } catch (error) {
@@ -184,20 +237,21 @@ async function createDiaria(dailyWageDto) {
   }
 }
 
-async function updateDiaria() {
-  const changed = hasChanges(props.modelValue, form.value);
+async function updateDiaria(updateDto) {
+  const changed = hasChanges(props.modelValue, { ...form.value, ...updateDto });
   if (!changed) {
     showSnackbar("Nenhuma modificação foi feita.", "info");
     return;
   }
 
   try {
-    await DailyWageService.update(form.value.id, form.value);
+    await DailyWageService.update(form.value.id, updateDto);
     showSnackbar("Alterações salvas com sucesso!", "success");
     setTimeout(() => emit("submit"), 500);
   } catch (error) {
     console.error(error);
     showSnackbar("Erro ao salvar alterações.", "error");
+    throw error;
   }
 }
 
@@ -261,8 +315,8 @@ const loadEmpresas = async () => {
             label="Empresa"
             density="comfortable"
             variant="outlined"
-            :readonly="isReadOnly"
-            :disabled="isReadOnly"
+            :readonly="isReadOnly || props.mode === 'edit'"
+            :disabled="isReadOnly || props.mode === 'edit'"
             :rules="[v => !!v || 'Campo obrigatório']"
             required
         />
@@ -322,8 +376,9 @@ const loadEmpresas = async () => {
           </v-col>
         </v-row>
 
+        <!-- Select de diarista só aparece no modo create -->
         <v-select
-            v-if="canSelectDiarist"
+            v-if="showDiaristSelect && canSelectDiarist"
             v-model="form.dayLaborer"
             :items="availableDiaristas"
             item-title="name"
@@ -336,6 +391,7 @@ const loadEmpresas = async () => {
             :disabled="isReadOnly"
         />
 
+        <!-- Tabela de diaristas -->
         <v-card v-if="selectedDiarists.length" rounded="lg" style="margin-bottom: 10px;">
           <v-table density="comfortable" class="elevation-1">
             <thead>
@@ -344,7 +400,7 @@ const loadEmpresas = async () => {
               <th class="text-left font-weight-bold text-primary">Valor a Pagar</th>
               <th class="text-left font-weight-bold text-primary">Bônus</th>
               <th class="text-left font-weight-bold text-primary">Dedução</th>
-              <th class="text-center font-weight-bold text-primary">Ações</th>
+              <th v-if="showDeleteAction" class="text-center font-weight-bold text-primary">Ações</th>
             </tr>
             </thead>
             <tbody>
@@ -353,12 +409,15 @@ const loadEmpresas = async () => {
                 :key="d.id"
                 class="transition-fast-in-fast-out"
             >
-              <td class="font-weight-medium">{{ d.name }}</td>
+              <td class="font-weight-medium" :class="{ 'text-grey': isReadOnly }">
+                {{ d.name }}
+              </td>
               <td>
                 <MoneyInput
                     v-model="d.paymentValue"
                     label=" "
                     :readonly="isReadOnly"
+                    :disabled="isReadOnly"
                     density="compact"
                     variant="outlined"
                     class="mt-2"
@@ -369,6 +428,7 @@ const loadEmpresas = async () => {
                     v-model="d.bonus"
                     label=" "
                     :readonly="isReadOnly"
+                    :disabled="isReadOnly"
                     density="compact"
                     variant="outlined"
                     class="mt-2"
@@ -379,12 +439,13 @@ const loadEmpresas = async () => {
                     v-model="d.deduction"
                     label=" "
                     :readonly="isReadOnly"
+                    :disabled="isReadOnly"
                     density="compact"
                     variant="outlined"
                     class="mt-2"
                 />
               </td>
-              <td class="text-center">
+              <td v-if="showDeleteAction" class="text-center">
                 <v-btn
                     icon="mdi-delete"
                     color="red-lighten-1"
@@ -407,22 +468,6 @@ const loadEmpresas = async () => {
             :readonly="isReadOnly"
             :disabled="isReadOnly"
             class="mt-2"
-        />
-
-        <v-select
-            v-if="showStatus"
-            v-model="form.paymentStatus"
-            label="Status"
-            density="comfortable"
-            variant="outlined"
-            :items="[
-            { title: 'Paga', value: 'ATIVO' },
-            { title: 'Não paga', value: 'INATIVO' }
-          ]"
-            item-title="title"
-            item-value="value"
-            :readonly="isReadOnly"
-            :disabled="isReadOnly"
         />
 
         <div class="mt-6 d-flex flex-column align-center gap-2">
