@@ -26,6 +26,8 @@ const diaristas = ref([]);
 const empresas = ref([]);
 const selectedDiarists = ref([]);
 const snackbar = ref({ show: false, color: "success", message: "" });
+const isLoadingDiaristas = ref(false);
+const showDiaristSelect = ref(false);
 
 const isReadOnly = computed(() => props.mode === "view");
 const formRef = ref(null);
@@ -33,8 +35,15 @@ const formValid = ref(false);
 const isSubmitting = ref(false);
 const hasDiarists = computed(() => selectedDiarists.value.length > 0);
 
-const showDiaristSelect = computed(() => props.mode === "create");
 const showDeleteAction = computed(() => props.mode === "create");
+
+const canShowSearchButton = computed(() =>
+    props.mode === "create" &&
+    form.value.workDay &&
+    form.value.startHour &&
+    form.value.endHour &&
+    validateEndHour(form.value.endHour) === true
+);
 
 function validateEndHour(value) {
   if (!form.value.startHour || !value) return true;
@@ -50,6 +59,43 @@ function validateEndHour(value) {
   return endMinutes > startMinutes || 'A hora final deve ser maior que a hora inicial';
 }
 
+const fetchAvailableDiaristas = async () => {
+  if (!canShowSearchButton.value) {
+    return;
+  }
+
+  isLoadingDiaristas.value = true;
+  showDiaristSelect.value = false;
+
+  try {
+    const response = await DayLaborerService.findAvailable(
+        form.value.workDay,
+        form.value.startHour + ':00',
+        form.value.endHour + ':00'
+    );
+
+    diaristas.value = Array.isArray(response)
+        ? response
+        : response?.content || [];
+
+    showDiaristSelect.value = true;
+
+    if (diaristas.value.length === 0) {
+      showSnackbar("Nenhum diarista disponível para o período selecionado", "info");
+    } else {
+      showSnackbar(`${diaristas.value.length} diaristas encontrados`, "success");
+    }
+
+  } catch (error) {
+    console.error("Erro ao buscar diaristas disponíveis:", error);
+    showSnackbar("Erro ao buscar diaristas disponíveis", "error");
+    diaristas.value = [];
+    showDiaristSelect.value = false;
+  } finally {
+    isLoadingDiaristas.value = false;
+  }
+};
+
 const formatToLocalDate = (dateString) => {
   if (!dateString) return null;
   return dateString;
@@ -59,15 +105,6 @@ const formatToLocalTime = (timeString) => {
   if (!timeString) return null;
   return timeString.substring(0, 5);
 };
-
-const canSelectDiarist = computed(() =>
-    props.mode === "create" &&
-    form.value.workDay &&
-    form.value.startHour &&
-    form.value.endHour &&
-    validateEndHour(form.value.endHour) === true
-);
-
 
 watch(
     () => props.modelValue,
@@ -269,21 +306,8 @@ async function updateDiaria(dailyWageDto) {
 }
 
 onMounted(async () => {
-  await loadDiaristas();
   await loadEmpresas();
 });
-
-const loadDiaristas = async () => {
-  try {
-    const response = await DayLaborerService.findAll();
-    diaristas.value = Array.isArray(response)
-        ? response
-        : response?.content || [];
-  } catch (error) {
-    console.error("Erro ao buscar diaristas:", error);
-    diaristas.value = [];
-  }
-};
 
 const loadEmpresas = async () => {
   try {
@@ -389,19 +413,45 @@ const loadEmpresas = async () => {
           </v-col>
         </v-row>
 
+        <div v-if="props.mode === 'create'" class="d-flex justify-center">
+          <v-btn
+              v-if="canShowSearchButton && !showDiaristSelect"
+              @click="fetchAvailableDiaristas"
+              color="primary"
+              variant="outlined"
+              :loading="isLoadingDiaristas"
+              :disabled="isLoadingDiaristas"
+              class="text-capitalize"
+          >
+            <v-icon start>mdi-magnify</v-icon>
+            Buscar Diaristas Disponíveis
+          </v-btn>
+        </div>
+
         <v-select
-            v-if="showDiaristSelect && canSelectDiarist"
+            v-if="showDiaristSelect && availableDiaristas.length > 0"
             v-model="form.dayLaborer"
             :items="availableDiaristas"
             item-title="name"
             item-value="id"
-            label="Diarista"
+            label="Selecione um Diarista"
             density="comfortable"
             variant="outlined"
             @update:modelValue="addDiarist"
             :readonly="isReadOnly"
             :disabled="isReadOnly"
+            :hint="`${availableDiaristas.length} diaristas disponíveis`"
+            persistent-hint
         />
+
+        <v-alert
+            v-if="showDiaristSelect && availableDiaristas.length === 0"
+            type="info"
+            variant="tonal"
+            class="mt-2"
+        >
+          Nenhum diarista disponível para o período selecionado.
+        </v-alert>
 
         <!-- Tabela de diaristas -->
         <v-card v-if="selectedDiarists.length" rounded="lg" style="margin-bottom: 10px;">
