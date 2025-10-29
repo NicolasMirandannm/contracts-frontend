@@ -2,10 +2,9 @@
   <v-card elevation="1" rounded="xl" class="pa-4 mb-4">
     <v-card-text>
       <v-row dense align="center">
-        <!-- Campo Nome -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.nomeDiarista"
+              v-model="filtros.dayLaborerName"
               label="Informe o nome do diarista..."
               variant="outlined"
               density="comfortable"
@@ -14,10 +13,9 @@
           />
         </v-col>
 
-        <!-- Campo CNPJ -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.nomeEmpresa"
+              v-model="filtros.enterpriseName"
               label="Informe o nome da empresa..."
               variant="outlined"
               density="comfortable"
@@ -28,7 +26,8 @@
 
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.dataDiaria"
+              v-model="filtros.workDate"
+              type="date"
               label="Informe a data da diária..."
               variant="outlined"
               density="comfortable"
@@ -37,7 +36,6 @@
           />
         </v-col>
 
-        <!-- Filtro Status -->
         <v-col cols="12" sm="6" md="3" class="d-flex align-center">
           <v-btn-toggle
               v-model="filtros.status"
@@ -47,9 +45,8 @@
               mandatory
               class="w-100"
           >
-            <v-btn value="ativo">Pagas</v-btn>
-            <v-btn value="inativo">Não pagas</v-btn>
-            <v-btn value="todos">Todas</v-btn>
+            <v-btn value="PAGO">Pagas</v-btn>
+            <v-btn value="NAO_PAGO">Não pagas</v-btn>
           </v-btn-toggle>
         </v-col>
 
@@ -64,6 +61,18 @@
             >
               Filtrar
             </v-btn>
+
+            <v-btn
+                v-if="temFiltrosAtivos"
+                color="red"
+                variant="tonal"
+                prepend-icon="mdi-close"
+                rounded="lg"
+                @click="limparFiltros"
+            >
+              Limpar filtros
+            </v-btn>
+
             <v-spacer style="max-width: 24px" />
             <v-btn
                 color="primary"
@@ -82,19 +91,44 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, defineEmits, computed } from "vue";
+
+const emit = defineEmits(['cadastrar', 'filtrar']);
 
 const filtros = ref({
-  nome: "",
-  cnpj: "",
-  status: "todos", // valor inicial
+  dayLaborerName: "",
+  enterpriseName: "",
+  workDate: null,
+  status: null,
 });
 
-const onCadastrar = () => {
-  console.log("Cadastrar clicado com filtros:", filtros.value);
-};
+const temFiltrosAtivos = computed(() => {
+  return (
+      filtros.value.dayLaborerName ||
+      filtros.value.enterpriseName ||
+      filtros.value.workDate ||
+      filtros.value.status !== null
+  );
+});
 
 const onFiltrar = () => {
-  console.log("Filtrar com valores:", filtros.value);
+  emit('filtrar', {
+    dayLaborerName: filtros.value.dayLaborerName || null,
+    enterpriseName: filtros.value.enterpriseName || null,
+    workDate: filtros.value.workDate || null,
+    status: filtros.value.status
+  });
 };
+
+const limparFiltros = () => {
+  filtros.value = {
+    dayLaborerName: "",
+    enterpriseName: "",
+    workDate: null,
+    status: null,
+  };
+  emit('filtrar', null);
+};
+
+defineExpose({ limparFiltros });
 </script>

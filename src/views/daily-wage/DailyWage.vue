@@ -5,23 +5,56 @@ import HeaderDailyWageComponent from "@/views/daily-wage/HeaderDailyWageComponen
 import DailyWageFormComponent from "@/views/daily-wage/DailyWageFormComponent.vue";
 import DailyWageService from "@/api/services/daily-wage/DailyWageService.js";
 
-const diarias = ref([]);
+const diarias = ref({ content: [], totalElements: 0, totalPages: 0 });
+const carregando = ref(false);
 
-const loadDiarias = async () => {
+const filtrosAtuais = ref({
+  dayLaborerName: null,
+  enterpriseName: null,
+  workDate: null,
+  status: null
+});
+
+const loadDiarias = async (page = 0) => {
   try {
-    const response = await DailyWageService.findAll()
-    diarias.value = Array.isArray(response)
-        ? response
-        : response?.content || []
+    carregando.value = true;
+
+    const params = {
+      page: page,
+      size: itemsPerPage.value,
+      ...filtrosAtuais.value
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === null || params[key] === '') {
+        delete params[key];
+      }
+    });
+
+    const response = await DailyWageService.findAll(params);
+    diarias.value = response;
+
   } catch (error) {
-    console.error('Erro ao buscar diarias:', error)
-    diarias.value = []
+    console.error('Erro ao buscar diarias:', error);
+    diarias.value = { content: [], totalElements: 0, totalPages: 0 };
+  } finally {
+    carregando.value = false;
   }
-}
+};
+
+const aplicarFiltros = (novosFiltros) => {
+  if (novosFiltros === null) {
+    filtrosAtuais.value = {};
+  } else {
+    filtrosAtuais.value = novosFiltros;
+  }
+  page.value = 1;
+  loadDiarias(0);
+};
 
 onMounted(async () => {
-  await loadDiarias();
-})
+  await loadDiarias(0);
+});
 
 const formatDate = (dateString) => {
   if (!dateString) return '-';
@@ -60,13 +93,13 @@ const headers = [
   { title: 'Ações',          key: 'acoes',                     align: 'center', sortable: false },
 ]
 
-const page = ref(1)
-const itemsPerPage = ref(5)
+const page = ref(1);
+const itemsPerPage = ref(5);
 
-const pageCount = computed(() => Math.ceil(diarias.value.length / itemsPerPage.value))
+const pageCount = computed(() => diarias.value.totalPages || 0);
 
 const diariasFormatadas = computed(() => {
-  return diarias.value.map(diaria => ({
+  return diarias.value.content.map(diaria => ({
     ...diaria,
     diarista: getDiaristaName(diaria.dayLaborer),
     workDateFormatted: formatDate(diaria.workDate),
@@ -75,11 +108,14 @@ const diariasFormatadas = computed(() => {
   }));
 });
 
-const paginatedItems = computed(() => {
-  const start = (page.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return diariasFormatadas.value.slice(start, end)
-})
+const onPageChange = (newPage) => {
+  loadDiarias(newPage - 1);
+};
+
+const onItemsPerPageChange = () => {
+  page.value = 1;
+  loadDiarias(0);
+};
 
 const dialog = ref(false);
 const dialogMode = ref("create");
@@ -111,10 +147,11 @@ function onVerMais(item) {
 
 const onDeleted = async (id) => {
   try {
-    await loadDiarias();
+    await loadDiarias(page.value - 1);
 
-    if (paginatedItems.value.length === 0 && page.value > 1) {
-      page.value = 1;
+    if (diarias.value.content.length === 0 && page.value > 1) {
+      page.value = page.value - 1;
+      await loadDiarias(page.value - 1);
     }
   } catch (error) {
     console.error('Erro ao recarregar diarias:', error);
@@ -128,7 +165,7 @@ const onDeleteError = (err) => {
 
 const onDialogSubmit = async () => {
   dialog.value = false;
-  await loadDiarias();
+  await loadDiarias(page.value - 1);
 }
 
 const onDialogCancel = () => {
@@ -139,11 +176,22 @@ const onDialogCancel = () => {
 
 <template>
   <div class="w-100 h-100">
-    <HeaderDailyWageComponent class="mb-4" @cadastrar="onCadastrar" />
+    <HeaderDailyWageComponent
+        class="mb-4"
+        @cadastrar="onCadastrar"
+        @filtrar="aplicarFiltros"
+    />
+
     <v-card elevation="1" class="d-flex flex-column flex-grow-1 w-100 shadow-sm" rounded="xl">
       <v-data-table
           :headers="headers"
-          :items="paginatedItems"
+          :items="diariasFormatadas"
+          :loading="carregando"
+          :items-length="diarias.totalElements"
+          :page="page"
+          :items-per-page="itemsPerPage"
+          @update:page="onPageChange"
+          @update:items-per-page="onItemsPerPageChange"
       >
         <template #header.enterprise.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.diarista="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
@@ -189,15 +237,17 @@ const onDialogCancel = () => {
 
         <template #bottom>
           <div class="d-flex justify-space-between align-center px-4 py-2 w-100">
-            <div>{{ (page - 1) * itemsPerPage + 1 }} -
-              {{ Math.min(page * itemsPerPage, diarias.length) }}
-              de {{ diarias.length }} itens
+            <div>
+              {{ (page - 1) * itemsPerPage + 1 }} -
+              {{ Math.min(page * itemsPerPage, diarias.totalElements) }}
+              de {{ diarias.totalElements }} itens
             </div>
             <v-pagination
                 v-model="page"
                 :length="pageCount"
-                total-visible="7"
+                :total-visible="7"
                 rounded="circle"
+                @update:model-value="onPageChange"
             />
             <v-select
                 v-model="itemsPerPage"
@@ -206,6 +256,7 @@ const onDialogCancel = () => {
                 hide-details
                 style="max-width: 180px"
                 label="Itens por página"
+                @update:model-value="onItemsPerPageChange"
             />
           </div>
         </template>
