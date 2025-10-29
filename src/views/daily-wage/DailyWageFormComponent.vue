@@ -45,6 +45,15 @@ const canShowSearchButton = computed(() =>
     validateEndHour(form.value.endHour) === true
 );
 
+const resetDiaristasSearch = () => {
+  if (showDiaristSelect.value) {
+    showDiaristSelect.value = false;
+    diaristas.value = [];
+    selectedDiarists.value = [];
+    form.value.dayLaborer = null;
+  }
+};
+
 function validateEndHour(value) {
   if (!form.value.startHour || !value) return true;
 
@@ -139,7 +148,7 @@ watch(
 
 watch(
     () => form.value.startHour,
-    (newStartHour) => {
+    (newStartHour, oldStartHour) => {
       if (newStartHour && form.value.endHour) {
         const startToMinutes = (time) => {
           const [hours, minutes] = time.split(':').map(Number);
@@ -152,6 +161,28 @@ watch(
         if (endMinutes <= startMinutes) {
           form.value.endHour = null;
         }
+      }
+
+      if (newStartHour !== oldStartHour) {
+        resetDiaristasSearch();
+      }
+    }
+);
+
+watch(
+    () => form.value.endHour,
+    (newEndHour, oldEndHour) => {
+      if (newEndHour !== oldEndHour) {
+        resetDiaristasSearch();
+      }
+    }
+);
+
+watch(
+    () => form.value.workDay,
+    (newDate, oldDate) => {
+      if (newDate !== oldDate) {
+        resetDiaristasSearch();
       }
     }
 );
@@ -445,7 +476,16 @@ const loadEmpresas = async () => {
         />
 
         <v-alert
-            v-if="showDiaristSelect && availableDiaristas.length === 0"
+            v-if="showDiaristSelect && availableDiaristas.length === 0 && selectedDiarists.length > 0"
+            type="info"
+            variant="tonal"
+            class="mt-2"
+        >
+          Todos os diaristas disponíveis foram selecionados.
+        </v-alert>
+
+        <v-alert
+            v-else-if="showDiaristSelect && availableDiaristas.length === 0 && selectedDiarists.length === 0"
             type="info"
             variant="tonal"
             class="mt-2"
