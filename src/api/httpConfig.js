@@ -22,7 +22,6 @@ httpConfig.interceptors.request.use(
 httpConfig.interceptors.response.use(
   response => response,
   error => {
-    console.log(error.response)
     if (error.response && [401, 403].includes(error.response.status)) {
       window.location = '/login';
     }
