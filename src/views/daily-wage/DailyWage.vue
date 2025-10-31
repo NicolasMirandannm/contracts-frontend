@@ -79,13 +79,12 @@ const formatCurrency = (value) => {
 };
 
 const getDiaristaName = (dayLaborer) => {
-  if (!dayLaborer || !dayLaborer.length) return '-';
-  return dayLaborer[0].name;
+  return dayLaborer.name;
 };
 
 const headers = [
   { title: 'Empresa',        key: 'enterprise.name',           align: 'center' },
-  { title: 'Diarista',       key: 'diarista',                  align: 'center' },
+  { title: 'Diarista',       key: 'dayLaborer.name',                  align: 'center' },
   { title: 'Dia',            key: 'workDateFormatted',         align: 'center' },
   { title: 'Hora',           key: 'horaFormatada',             align: 'center' },
   { title: 'Valor',          key: 'valorFormatado',            align: 'center' },
@@ -104,7 +103,7 @@ const diariasFormatadas = computed(() => {
     diarista: getDiaristaName(diaria.dayLaborer),
     workDateFormatted: formatDate(diaria.workDate),
     horaFormatada: formatTimeRange(diaria.startHour, diaria.endHour),
-    valorFormatado: formatCurrency(diaria.paymentValue)
+    valorFormatado: formatCurrency(diaria.dayLaborerPaymentValue)
   }));
 });
 
@@ -194,7 +193,7 @@ const onDialogCancel = () => {
           @update:items-per-page="onItemsPerPageChange"
       >
         <template #header.enterprise.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
-        <template #header.diarista="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+        <template #header.dayLaborer.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.workDateFormatted="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.horaFormatada="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.valorFormatado="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
@@ -205,8 +204,8 @@ const onDialogCancel = () => {
           {{ item.enterprise?.name || '-' }}
         </template>
 
-        <template #item.diarista="{ item }">
-          {{ item.diarista }}
+        <template #item.dayLaborer.name="{ item }">
+          {{ item.dayLaborer?.name }}
         </template>
 
         <template #item.workDateFormatted="{ item }">

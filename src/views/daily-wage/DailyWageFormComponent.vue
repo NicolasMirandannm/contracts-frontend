@@ -20,6 +20,7 @@ const form = ref({
   workDay: null,
   startHour: null,
   endHour: null,
+  version: null
 });
 
 const diaristas = ref([]);
@@ -68,11 +69,7 @@ function validateEndHour(value) {
   return endMinutes > startMinutes || 'A hora final deve ser maior que a hora inicial';
 }
 
-const fetchAvailableDiaristas = async () => {
-  if (!canShowSearchButton.value) {
-    return;
-  }
-
+const fetchAvailableDiarists = async () => {
   isLoadingDiaristas.value = true;
   showDiaristSelect.value = false;
 
@@ -96,8 +93,8 @@ const fetchAvailableDiaristas = async () => {
     }
 
   } catch (error) {
-    console.error("Erro ao buscar diaristas disponíveis:", error);
-    showSnackbar("Erro ao buscar diaristas disponíveis", "error");
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao buscar diaristas disponíveis: " + msg, "error");
     diaristas.value = [];
     showDiaristSelect.value = false;
   } finally {
@@ -124,37 +121,32 @@ watch(
           enterprise: val.enterprise?.id || null,
           workDay: val.workDate ? val.workDate.substring(0, 10) : null,
           startHour: val.startHour ? val.startHour.substring(0, 5) : null,
-          endHour: val.endHour ? val.endHour.substring(0, 5) : null,
+          endHour: val.endHour ? val.endHour.substring(0, 5) : null
         };
 
-        if (val.dayLaborer && val.dayLaborer.length > 0) {
-          selectedDiarists.value = val.dayLaborer.map(diarist => ({
-            id: diarist.id,
-            name: diarist.name,
-            cpf: diarist.cpf,
-            phoneNumber: diarist.phoneNumber,
-            status: diarist.status,
-            pixKey: diarist.pixKey,
-            version: diarist.version,
-            paymentValue: val.paymentValue || 0,
+        if (val.dayLaborer) {
+          selectedDiarists.value.push({
+            id: val.dayLaborer.id,
+            name: val.dayLaborer.name,
+            dayLaborerPaymentValue: val.dayLaborerPaymentValue || 0,
             bonus: val.bonus || 0,
             deduction: val.deduction || 0
-          }));
+          });
         }
       }
     },
     { immediate: true, deep: true }
 );
 
+const startToMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
 watch(
     () => form.value.startHour,
     (newStartHour, oldStartHour) => {
       if (newStartHour && form.value.endHour) {
-        const startToMinutes = (time) => {
-          const [hours, minutes] = time.split(':').map(Number);
-          return hours * 60 + minutes;
-        };
-
         const startMinutes = startToMinutes(newStartHour);
         const endMinutes = startToMinutes(form.value.endHour);
 
@@ -187,6 +179,23 @@ watch(
     }
 );
 
+
+watch(
+    () => [form.value.enterprise, form.value.workDay, form.value.startHour, form.value.endHour],
+    ([enterprise, workDay, startHour, endHour]) => {
+
+      if (enterprise && workDay && startHour && endHour) {
+        const startMinutes = startToMinutes(startHour);
+        const endMinutes = startToMinutes(endHour);
+
+        if (endMinutes > startMinutes) {
+          fetchAvailableDiarists()
+        }
+      }
+    }
+);
+
+
 watch(
     () => form.value.enterprise,
     (newEnterpriseId) => {
@@ -205,11 +214,7 @@ function addDiarist(diaristId) {
     selectedDiarists.value.push({
       id: diarist.id,
       name: diarist.name,
-      cpf: diarist.cpf,
-      phoneNumber: diarist.phoneNumber,
-      status: diarist.status,
-      pixKey: diarist.pixKey,
-      paymentValue: diarist.paymentValue || 0,
+      dayLaborerPaymentValue: diarist.dayLaborerPaymentValue || 0,
       bonus: 0,
       deduction: 0
     });
@@ -249,17 +254,11 @@ async function onSubmit() {
 
   try {
     if (props.mode === "create") {
-      const dailyWageDto = {
-        enterprise: { id: form.value.enterprise },
-        dayLaborer: selectedDiarists.value.map(diarist => ({
-          id: diarist.id,
-          name: diarist.name,
-          cpf: diarist.cpf,
-          phoneNumber: diarist.phoneNumber,
-          status: diarist.status,
-          pixKey: diarist.pixKey,
-          version: diarist.version,
-          paymentValue: diarist.paymentValue || 0,
+      const dailyWorkRegisterDto = {
+        enterpriseId: form.value.enterprise,
+        dayLaborers: selectedDiarists.value.map(diarist => ({
+          dayLaborerId: diarist.id,
+          dayLaborerPaymentValue: diarist.dayLaborerPaymentValue || 0,
           bonus: diarist.bonus || 0,
           deduction: diarist.deduction || 0
         })),
@@ -268,29 +267,21 @@ async function onSubmit() {
         endHour: formatToLocalTime(form.value.endHour),
         baseDailyRate: form.value.baseDailyRate,
         notes: form.value.notes,
-        paymentStatus: 'NAO_PAGO'
       };
-      await createDiaria(dailyWageDto);
+      await createDiaria(dailyWorkRegisterDto);
+
     } else if (props.mode === "edit") {
       const dailyWageDto = {
         id: form.value.id,
         enterprise: { id: form.value.enterprise },
-        dayLaborer: selectedDiarists.value.map(diarist => ({
-          id: diarist.id,
-          name: diarist.name,
-          cpf: diarist.cpf,
-          phoneNumber: diarist.phoneNumber,
-          status: diarist.status,
-          pixKey: diarist.pixKey,
-          version: diarist.version,
-        })),
+        dayLaborer: { id: selectedDiarists.value[0]?.id },
         workDate: formatToLocalDate(form.value.workDay),
         startHour: formatToLocalTime(form.value.startHour),
         endHour: formatToLocalTime(form.value.endHour),
         baseDailyRate: form.value.baseDailyRate,
         bonus: selectedDiarists.value[0]?.bonus || 0,
         deduction: selectedDiarists.value[0]?.deduction || 0,
-        paymentValue: selectedDiarists.value[0]?.paymentValue || 0,
+        dayLaborerPaymentValue: selectedDiarists.value[0]?.dayLaborerPaymentValue || 0,
         notes: form.value.notes,
         paymentStatus: form.value.paymentStatus,
         version: form.value.version
@@ -299,8 +290,8 @@ async function onSubmit() {
     }
 
   } catch (error) {
-    console.error(error);
-    showSnackbar("Erro ao processar diárias.", "error");
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao processar diárias: " + msg, "error");
   } finally {
     isSubmitting.value = false;
   }
@@ -312,8 +303,8 @@ async function createDiaria(dailyWageDto) {
     showSnackbar("Diárias cadastradas com sucesso!", "success");
     setTimeout(() => emit("submit"), 500);
   } catch (error) {
-    console.error(error);
-    showSnackbar("Erro ao cadastrar diárias.", "error");
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao cadastrar diárias: " + msg, "error");
     throw error;
   }
 }
@@ -330,8 +321,8 @@ async function updateDiaria(dailyWageDto) {
     showSnackbar("Alterações salvas com sucesso!", "success");
     setTimeout(() => emit("submit"), 500);
   } catch (error) {
-    console.error(error);
-    showSnackbar("Erro ao salvar alterações.", "error");
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao salvar alterações: " + msg, "error");
     throw error;
   }
 }
@@ -444,20 +435,20 @@ const loadEmpresas = async () => {
           </v-col>
         </v-row>
 
-        <div v-if="props.mode === 'create'" class="d-flex justify-center">
-          <v-btn
-              v-if="canShowSearchButton && !showDiaristSelect"
-              @click="fetchAvailableDiaristas"
-              color="primary"
-              variant="outlined"
-              :loading="isLoadingDiaristas"
-              :disabled="isLoadingDiaristas"
-              class="text-capitalize"
-          >
-            <v-icon start>mdi-magnify</v-icon>
-            Buscar Diaristas Disponíveis
-          </v-btn>
-        </div>
+<!--        <div v-if="props.mode === 'create'" class="d-flex justify-center">-->
+<!--          <v-btn-->
+<!--              v-if="canShowSearchButton && !showDiaristSelect"-->
+<!--              @click="fetchAvailableDiaristas"-->
+<!--              color="primary"-->
+<!--              variant="outlined"-->
+<!--              :loading="isLoadingDiaristas"-->
+<!--              :disabled="isLoadingDiaristas"-->
+<!--              class="text-capitalize"-->
+<!--          >-->
+<!--            <v-icon start>mdi-magnify</v-icon>-->
+<!--            Buscar Diaristas Disponíveis-->
+<!--          </v-btn>-->
+<!--        </div>-->
 
         <v-select
             v-if="showDiaristSelect && availableDiaristas.length > 0"
@@ -516,7 +507,7 @@ const loadEmpresas = async () => {
               </td>
               <td>
                 <MoneyInput
-                    v-model="d.paymentValue"
+                    v-model="d.dayLaborerPaymentValue"
                     label=" "
                     :readonly="isReadOnly"
                     :disabled="isReadOnly"

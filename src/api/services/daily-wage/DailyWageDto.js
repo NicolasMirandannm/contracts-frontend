@@ -1,15 +1,16 @@
 export default class DailyWageDto {
-    constructor(enterprise, daylaborer, baseDailyRate, bonus, deduction, paymentValue, notes, paymentStatus, workDay, startHour, endHour) {
+    constructor(enterprise, daylaborer, baseDailyRate, bonus, deduction, dayLaborerPaymentValue, notes, paymentStatus, workDay, startHour, endHour, version) {
         this.enterprise = enterprise;
-        this.daylaborer = daylaborer;
+        this.dayLaborer = daylaborer;
         this.baseDailyRate = baseDailyRate;
         this.bonus = bonus;
         this.deduction = bonus;
-        this.paymnetValue = paymentValue;
+        this.dayLaborerPaymentValue = dayLaborerPaymentValue;
         this.notes = notes;
         this.paymentStatus = paymentStatus;
-        this.workDay = workDay;
+        this.workDate = workDay;
         this.startHour = endHour;
         this.endHour = endHour;
+        this.version = version;
     }
 }
