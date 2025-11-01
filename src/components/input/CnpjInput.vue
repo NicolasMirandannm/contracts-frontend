@@ -14,7 +14,7 @@ const inputValue = ref(props.modelValue || "");
 watch(
     () => props.modelValue,
     (val) => {
-      inputValue.value = val || "";
+      inputValue.value = formatCNPJ(val || "");
     }
 );
 
@@ -29,10 +29,16 @@ function formatCNPJ(value) {
       .slice(0, 18);
 }
 
+function removeMask(value) {
+  return value.replace(/\D/g, "");
+}
+
 function onInput(e) {
   const formatted = formatCNPJ(e.target.value);
   inputValue.value = formatted;
-  emit("update:modelValue", formatted);
+
+  const unmaskedValue = removeMask(formatted);
+  emit("update:modelValue", unmaskedValue);
 }
 </script>
 
@@ -46,7 +52,8 @@ function onInput(e) {
       maxlength="18"
       :readonly="readonly"
       :disabled="readonly"
-      :rules="[v => !!v || 'Campo obrigatório']"
+      :rules="required ? [v => !!v || 'Campo obrigatório'] : []"
       :required="required"
+      placeholder="00.000.000/0000-00"
   />
 </template>

@@ -5,22 +5,74 @@ import HeaderDayLaborerComponent from "@/views/day-laborer/HeaderDayLaborerCompo
 import DayLaborerFormComponent from "@/views/day-laborer/DayLaborerFormComponent.vue";
 import DayLaborerService from "@/api/services/day-laborer/DayLaborerService.js";
 
-const diaristas = ref([]);
+const diaristas = ref({ content: [], totalElements: 0, totalPages: 0 });
+const carregando = ref(false);
 
-const loadDiaristas = async () => {
+const filtrosAtuais = ref({
+  name: null,
+  cpf: null,
+  phoneNumber: null,
+  status: null
+});
+
+const formatCPF = (cpf) => {
+  if (!cpf) return '';
+  const numbers = cpf.replace(/\D/g, '');
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  if (numbers.length <= 9) return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
+};
+
+const formatPhone = (phone) => {
+  if (!phone) return '';
+  const numbers = phone.replace(/\D/g, '');
+  if (numbers.length <= 2) return numbers;
+  if (numbers.length <= 6) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  if (numbers.length <= 10) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+  return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+};
+
+const loadDiaristas = async (page = 0) => {
   try {
-    const response = await DayLaborerService.findAll()
-    diaristas.value = Array.isArray(response)
-        ? response
-        : response?.content || []
+    carregando.value = true;
+
+    const params = {
+      page: page,
+      size: itemsPerPage.value,
+      ...filtrosAtuais.value
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === null || params[key] === '') {
+        delete params[key];
+      }
+    });
+
+    const response = await DayLaborerService.findAll(params);
+    diaristas.value = response;
   } catch (error) {
-    console.error('Erro ao buscar empresas:', error)
+    console.error('Erro ao buscar diaristas:', error)
     diaristas.value = []
+    console.error('Erro ao buscar diarias:', error);
+    diaristas.value = { content: [], totalElements: 0, totalPages: 0 };
+  } finally {
+    carregando.value = false;
   }
 }
 
+const aplicarFiltros = (novosFiltros) => {
+  if (novosFiltros === null) {
+    filtrosAtuais.value = {};
+  } else {
+    filtrosAtuais.value = novosFiltros;
+  }
+  page.value = 1;
+  loadDiaristas(0);
+};
+
 onMounted(async () => {
-  await loadDiaristas();
+  await loadDiaristas(0);
 })
 
 const headers = [
@@ -31,16 +83,19 @@ const headers = [
   { title: 'Ações',          key: 'acoes',          align: 'center', sortable: false },
 ]
 
-const page = ref(1)
-const itemsPerPage = ref(5)
+const page = ref(1);
+const itemsPerPage = ref(5);
 
-const pageCount = computed(() => Math.ceil(diaristas.value.length / itemsPerPage.value))
+const pageCount = computed(() => diaristas.value.totalPages || 0);
 
-const paginatedItems = computed(() => {
-  const start = (page.value - 1) * itemsPerPage.value
-  const end = start + itemsPerPage.value
-  return diaristas.value.slice(start, end)
-})
+const onPageChange = (newPage) => {
+  loadDiaristas(newPage - 1);
+};
+
+const onItemsPerPageChange = () => {
+  page.value = 1;
+  loadDiaristas(0);
+};
 
 const dialog = ref(false);
 const dialogMode = ref("create");
@@ -72,10 +127,11 @@ function onVerMais(item) {
 
 const onDeleted = async (id) => {
   try {
-    await loadDiaristas();
+    await loadDiaristas(page.value - 1);
 
-    if (paginatedItems.value.length === 0 && page.value > 1) {
-      page.value = 1;
+    if (diaristas.value.content.length === 0 && page.value > 1) {
+      page.value = page.value - 1;
+      await loadDiaristas(page.value - 1);
     }
   } catch (error) {
     console.error('Erro ao recarregar diaristas:', error);
@@ -89,7 +145,7 @@ const onDeleteError = (err) => {
 
 const onDialogSubmit = async () => {
   dialog.value = false;
-  await loadDiaristas();
+  await loadDiaristas(page.value - 1);
 }
 
 const onDialogCancel = () => {
@@ -99,17 +155,39 @@ const onDialogCancel = () => {
 
 <template>
   <div class="w-100 h-100">
-    <HeaderDayLaborerComponent class="mb-4" @cadastrar="onCadastrar" />
+    <HeaderDayLaborerComponent
+        class="mb-4"
+        @cadastrar="onCadastrar"
+        @filtrar="aplicarFiltros"
+    />
     <v-card elevation="1" class="d-flex flex-column flex-grow-1 w-100 shadow-sm" rounded="xl">
       <v-data-table
           :headers="headers"
-          :items="paginatedItems"
+          :items="diaristas.content"
+          :loading="carregando"
+          :items-length="diaristas.totalElements"
+          :page="page"
+          :items-per-page="itemsPerPage"
+          @update:page="onPageChange"
+          @update:items-per-page="onItemsPerPageChange"
       >
         <template #header.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.cpf="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.phoneNumber="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.status="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
         <template #header.acoes="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
+
+        <template #item.name="{ item }">
+          <span>{{ item.name }}</span>
+        </template>
+
+        <template #item.cpf="{ item }">
+          <span>{{ formatCPF(item.cpf) }}</span>
+        </template>
+
+        <template #item.phoneNumber="{ item }">
+          <span>{{ formatPhone(item.phoneNumber) }}</span>
+        </template>
 
         <template #item.status="{ item }">
           <v-chip :color="item.status === 'ATIVO' ? 'success' : 'error'" variant="tonal" size="small">
@@ -127,15 +205,17 @@ const onDialogCancel = () => {
 
         <template #bottom>
           <div class="d-flex justify-space-between align-center px-4 py-2 w-100">
-            <div>{{ (page - 1) * itemsPerPage + 1 }} -
-              {{ Math.min(page * itemsPerPage, diaristas.length) }}
-              de {{ diaristas.length }} itens
+            <div>
+              {{ (page - 1) * itemsPerPage + 1 }} -
+              {{ Math.min(page * itemsPerPage, diaristas.totalElements) }}
+              de {{ diaristas.totalElements }} itens
             </div>
             <v-pagination
                 v-model="page"
                 :length="pageCount"
-                total-visible="7"
+                :total-visible="7"
                 rounded="circle"
+                @update:model-value="onPageChange"
             />
             <v-select
                 v-model="itemsPerPage"
@@ -144,6 +224,7 @@ const onDialogCancel = () => {
                 hide-details
                 style="max-width: 180px"
                 label="Itens por página"
+                @update:model-value="onItemsPerPageChange"
             />
           </div>
         </template>

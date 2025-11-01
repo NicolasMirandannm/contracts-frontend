@@ -439,7 +439,6 @@ const loadEmpresas = async () => {
             @update:modelValue="addDiarist"
             :readonly="isReadOnly"
             :disabled="isReadOnly"
-            :hint="`${availableDiaristas.length} diaristas disponíveis`"
             persistent-hint
         />
 
@@ -462,82 +461,83 @@ const loadEmpresas = async () => {
         </v-alert>
 
         <!-- Tabela de diaristas -->
-        <v-card v-if="selectedDiarists.length" rounded="lg" style="margin-bottom: 10px;">
-          <v-table density="comfortable" class="elevation-1">
-            <thead>
-            <tr>
-              <th class="text-left font-weight-bold text-primary">Nome</th>
-              <th class="text-left font-weight-bold text-primary">Valor a Pagar</th>
-              <th class="text-left font-weight-bold text-primary">Bônus</th>
-              <th class="text-left font-weight-bold text-primary">Dedução</th>
-              <th v-if="showDeleteAction" class="text-center font-weight-bold text-primary">Ações</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr
-                v-for="d in selectedDiarists"
-                :key="d.id"
-                class="transition-fast-in-fast-out"
-            >
-              <td class="font-weight-medium" :class="{ 'text-grey': isReadOnly }">
-                {{ d.name }}
-              </td>
-              <td>
-                <MoneyInput
-                    v-model="d.dayLaborerPaymentValue"
-                    label=" "
-                    :readonly="isReadOnly"
-                    :disabled="isReadOnly"
-                    density="compact"
-                    variant="outlined"
-                    class="mt-2"
-                />
-              </td>
-              <td>
-                <MoneyInput
-                    v-model="d.bonus"
-                    label=" "
-                    :readonly="isReadOnly"
-                    :disabled="isReadOnly"
-                    density="compact"
-                    variant="outlined"
-                    class="mt-2"
-                />
-              </td>
-              <td>
-                <MoneyInput
-                    v-model="d.deduction"
-                    label=" "
-                    :readonly="isReadOnly"
-                    :disabled="isReadOnly"
-                    density="compact"
-                    variant="outlined"
-                    class="mt-2"
-                />
-              </td>
-              <td v-if="showDeleteAction" class="text-center">
-                <v-btn
-                    icon="mdi-delete"
-                    color="red-lighten-1"
-                    size="small"
-                    variant="text"
-                    @click="removeDiarist(d.id)"
-                    :disabled="isReadOnly"
-                />
-              </td>
-            </tr>
-            </tbody>
-          </v-table>
+        <v-card v-if="selectedDiarists.length" rounded="lg" class="mb-3 elevation-2">
+          <div class="table-container">
+            <div class="table-header">
+              <div class="header-cell">Nome</div>
+              <div class="header-cell">Valor a Pagar</div>
+              <div class="header-cell">Bônus</div>
+              <div class="header-cell">Dedução</div>
+              <div v-if="showDeleteAction" class="header-cell text-center">Ações</div>
+            </div>
+
+            <div :class="['table-body', { 'scrollable-body': selectedDiarists.length >= 3 }]">
+              <div
+                  v-for="d in selectedDiarists"
+                  :key="d.id"
+                  class="table-row"
+                  :class="{ 'row-hover': !isReadOnly }"
+              >
+                <div class="body-cell" :class="{ 'text-grey': isReadOnly }">
+                  {{ d.name }}
+                </div>
+                <div class="body-cell">
+                  <MoneyInput
+                      v-model="d.dayLaborerPaymentValue"
+                      label=" "
+                      :readonly="isReadOnly"
+                      :disabled="isReadOnly"
+                      density="compact"
+                      variant="outlined"
+                      class="mt-1"
+                  />
+                </div>
+                <div class="body-cell">
+                  <MoneyInput
+                      v-model="d.bonus"
+                      label=" "
+                      :readonly="isReadOnly"
+                      :disabled="isReadOnly"
+                      density="compact"
+                      variant="outlined"
+                      class="mt-1"
+                  />
+                </div>
+                <div class="body-cell">
+                  <MoneyInput
+                      v-model="d.deduction"
+                      label=" "
+                      :readonly="isReadOnly"
+                      :disabled="isReadOnly"
+                      density="compact"
+                      variant="outlined"
+                      class="mt-1"
+                  />
+                </div>
+                <div v-if="showDeleteAction" class="body-cell actions-cell">
+                  <v-btn
+                      icon="mdi-delete"
+                      color="red lighten-2"
+                      size="small"
+                      variant="text"
+                      @click="removeDiarist(d.id)"
+                      :disabled="isReadOnly"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </v-card>
 
         <v-textarea
             v-model="form.notes"
             label="Observações"
-            density="comfortable"
+            density="compact"
             variant="outlined"
             :readonly="isReadOnly"
             :disabled="isReadOnly"
-            class="mt-2"
+            rows="2"
+            max-rows="4"
         />
 
         <div class="mt-6 d-flex flex-column align-center gap-2">
@@ -580,3 +580,84 @@ const loadEmpresas = async () => {
     </v-snackbar>
   </v-container>
 </template>
+
+<style scoped>
+.table-container {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 235px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.table-header {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--v-border-color);
+}
+
+.header-cell {
+  flex: 1;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-body {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  padding-right: 6px;
+}
+
+.table-row {
+  display: flex;
+  border-bottom: 1px solid var(--v-border-color);
+  transition: background-color 0.2s;
+}
+
+.row-hover:hover {
+  background-color: rgba(0,0,0,0.03);
+}
+
+.body-cell {
+  flex: 1;
+  padding: 8px 16px;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+}
+
+.text-grey {
+  color: var(--v-text-disabled);
+}
+
+.scrollable-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-body::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.3);
+  border-radius: 10px;
+}
+
+.scrollable-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.6);
+}
+
+.actions-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0px;
+}
+</style>

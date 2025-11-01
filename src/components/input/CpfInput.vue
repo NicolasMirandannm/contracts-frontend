@@ -9,29 +9,31 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const inputValue = ref(props.modelValue || "");
+const inputValue = ref(formatCPF(props.modelValue) || "");
 
 watch(
     () => props.modelValue,
-    (val) => {
-      inputValue.value = val || "";
+    (newValue) => {
+      inputValue.value = formatCPF(newValue) || "";
     }
 );
 
 function formatCPF(value) {
   if (!value) return "";
-  return value
-      .replace(/\D/g, "")
-      .replace(/^(\d{3})(\d)/, "$1.$2")
-      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-      .replace(/\.(\d{3})(\d)/, ".$1-$2")
-      .slice(0, 14);
+  const numbers = value.replace(/\D/g, "");
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  if (numbers.length <= 9) return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
 }
 
 function onInput(e) {
-  const formatted = formatCPF(e.target.value);
+  const rawValue = e.target.value;
+  const formatted = formatCPF(rawValue);
   inputValue.value = formatted;
-  emit("update:modelValue", formatted);
+
+  const unmaskedValue = formatted.replace(/\D/g, "");
+  emit("update:modelValue", unmaskedValue);
 }
 </script>
 
@@ -45,7 +47,8 @@ function onInput(e) {
       maxlength="14"
       :readonly="readonly"
       :disabled="readonly"
-      :rules="[v => !!v || 'Campo obrigatório']"
+      :rules="required ? [v => !!v || 'Campo obrigatório'] : []"
       :required="required"
+      placeholder="000.000.000-00"
   />
 </template>

@@ -2,10 +2,9 @@
   <v-card elevation="1" rounded="xl" class="pa-4 mb-4">
     <v-card-text>
       <v-row dense align="center">
-        <!-- Campo Nome -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.nome"
+              v-model="filtros.name"
               label="Informe o nome do diarista..."
               variant="outlined"
               density="comfortable"
@@ -14,30 +13,32 @@
           />
         </v-col>
 
-        <!-- Campo CNPJ -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.cpf"
+              v-model="cpfDisplay"
               label="Informe o CPF do diarista..."
               variant="outlined"
               density="comfortable"
               clearable
               hide-details
+              placeholder="000.000.000-00"
+              maxlength="14"
           />
         </v-col>
 
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.cnpj"
+              v-model="phoneDisplay"
               label="Informe o contato..."
               variant="outlined"
               density="comfortable"
               clearable
               hide-details
+              placeholder="(00) 00000-0000"
+              maxlength="15"
           />
         </v-col>
 
-        <!-- Filtro Status -->
         <v-col cols="12" sm="6" md="3" class="d-flex align-center">
           <v-btn-toggle
               v-model="filtros.status"
@@ -47,9 +48,8 @@
               mandatory
               class="w-100"
           >
-            <v-btn value="ativo">Ativo</v-btn>
-            <v-btn value="inativo">Inativo</v-btn>
-            <v-btn value="todos">Todos</v-btn>
+            <v-btn value="ATIVO">Ativo</v-btn>
+            <v-btn value="INATIVO">Inativo</v-btn>
           </v-btn-toggle>
         </v-col>
 
@@ -64,6 +64,18 @@
             >
               Filtrar
             </v-btn>
+
+            <v-btn
+                v-if="temFiltrosAtivos"
+                color="red"
+                variant="tonal"
+                prepend-icon="mdi-close"
+                rounded="lg"
+                @click="limparFiltros"
+            >
+              Limpar filtros
+            </v-btn>
+
             <v-spacer style="max-width: 24px" />
             <v-btn
                 color="primary"
@@ -82,19 +94,83 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, defineEmits, computed, watch } from "vue";
+
+const emit = defineEmits(['cadastrar', 'filtrar']);
 
 const filtros = ref({
-  nome: "",
-  cnpj: "",
-  status: "todos", // valor inicial
+  name: "",
+  cpf: "",
+  phoneNumber: "",
+  status: null,
 });
 
-const onCadastrar = () => {
-  console.log("Cadastrar clicado com filtros:", filtros.value);
-};
+const cpfDisplay = ref("");
+const phoneDisplay = ref("");
+
+watch(() => filtros.value.cpf, (newValue) => {
+  cpfDisplay.value = formatCPF(newValue);
+});
+
+watch(() => filtros.value.phoneNumber, (newValue) => {
+  phoneDisplay.value = formatPhone(newValue);
+});
+
+watch(cpfDisplay, (newValue) => {
+  filtros.value.cpf = newValue.replace(/\D/g, '');
+});
+
+watch(phoneDisplay, (newValue) => {
+  filtros.value.phoneNumber = newValue.replace(/\D/g, '');
+});
+
+function formatCPF(value) {
+  if (!value) return '';
+  const numbers = value.replace(/\D/g, '');
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 6) return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  if (numbers.length <= 9) return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
+}
+
+function formatPhone(value) {
+  if (!value) return '';
+  const numbers = value.replace(/\D/g, '');
+  if (numbers.length <= 2) return `(${numbers}`;
+  if (numbers.length <= 6) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  if (numbers.length <= 10) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 6)}-${numbers.slice(6)}`;
+  return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+}
+
+const temFiltrosAtivos = computed(() => {
+  return (
+      filtros.value.name ||
+      filtros.value.cpf ||
+      filtros.value.phoneNumber ||
+      filtros.value.status !== null
+  );
+});
 
 const onFiltrar = () => {
-  console.log("Filtrar com valores:", filtros.value);
+  emit('filtrar', {
+    name: filtros.value.name || null,
+    cpf: filtros.value.cpf || null,
+    phoneNumber: filtros.value.phoneNumber || null,
+    status: filtros.value.status
+  });
 };
+
+const limparFiltros = () => {
+  filtros.value = {
+    name: "",
+    cpf: "",
+    phoneNumber: "",
+    status: null,
+  };
+  cpfDisplay.value = "";
+  phoneDisplay.value = "";
+  emit('filtrar', null);
+};
+
+defineExpose({ limparFiltros });
 </script>
