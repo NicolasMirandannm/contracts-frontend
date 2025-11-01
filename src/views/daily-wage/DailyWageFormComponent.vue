@@ -38,14 +38,6 @@ const hasDiarists = computed(() => selectedDiarists.value.length > 0);
 
 const showDeleteAction = computed(() => props.mode === "create");
 
-const canShowSearchButton = computed(() =>
-    props.mode === "create" &&
-    form.value.workDay &&
-    form.value.startHour &&
-    form.value.endHour &&
-    validateEndHour(form.value.endHour) === true
-);
-
 const resetDiaristasSearch = () => {
   if (showDiaristSelect.value) {
     showDiaristSelect.value = false;
@@ -434,21 +426,6 @@ const loadEmpresas = async () => {
             />
           </v-col>
         </v-row>
-
-<!--        <div v-if="props.mode === 'create'" class="d-flex justify-center">-->
-<!--          <v-btn-->
-<!--              v-if="canShowSearchButton && !showDiaristSelect"-->
-<!--              @click="fetchAvailableDiaristas"-->
-<!--              color="primary"-->
-<!--              variant="outlined"-->
-<!--              :loading="isLoadingDiaristas"-->
-<!--              :disabled="isLoadingDiaristas"-->
-<!--              class="text-capitalize"-->
-<!--          >-->
-<!--            <v-icon start>mdi-magnify</v-icon>-->
-<!--            Buscar Diaristas Disponíveis-->
-<!--          </v-btn>-->
-<!--        </div>-->
 
         <v-select
             v-if="showDiaristSelect && availableDiaristas.length > 0"
