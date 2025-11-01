@@ -1,3 +1,4 @@
+<!-- HeaderEnterpriseComponent.vue -->
 <template>
   <v-card elevation="1" rounded="xl" class="pa-4 mb-4">
     <v-card-text>
@@ -5,7 +6,7 @@
         <!-- Campo Nome -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.nome"
+              v-model="filtros.name"
               label="Informe o nome da empresa..."
               variant="outlined"
               density="comfortable"
@@ -17,18 +18,20 @@
         <!-- Campo CNPJ -->
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.cnpj"
+              v-model="cnpjDisplay"
               label="Informe o CNPJ da empresa..."
               variant="outlined"
               density="comfortable"
               clearable
               hide-details
+              placeholder="00.000.000/0000-00"
+              maxlength="18"
           />
         </v-col>
 
         <v-col cols="12" sm="4" md="2">
           <v-text-field
-              v-model="filtros.cnpj"
+              v-model="filtros.ownerName"
               label="Informe o nome do representante..."
               variant="outlined"
               density="comfortable"
@@ -47,9 +50,8 @@
               mandatory
               class="w-100"
           >
-            <v-btn value="ativo">Ativo</v-btn>
-            <v-btn value="inativo">Inativo</v-btn>
-            <v-btn value="todos">Todos</v-btn>
+            <v-btn value="ATIVO">Ativo</v-btn>
+            <v-btn value="INATIVO">Inativo</v-btn>
           </v-btn-toggle>
         </v-col>
 
@@ -64,6 +66,18 @@
             >
               Filtrar
             </v-btn>
+
+            <v-btn
+                v-if="temFiltrosAtivos"
+                color="red"
+                variant="tonal"
+                prepend-icon="mdi-close"
+                rounded="lg"
+                @click="limparFiltros"
+            >
+              Limpar filtros
+            </v-btn>
+
             <v-spacer style="max-width: 24px" />
             <v-btn
                 color="primary"
@@ -82,19 +96,66 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
+
+const emit = defineEmits(['cadastrar', 'filtrar']);
 
 const filtros = ref({
-  nome: "",
+  name: "",
   cnpj: "",
-  status: "todos", // valor inicial
+  ownerName: "",
+  status: null,
 });
 
-const onCadastrar = () => {
-  console.log("Cadastrar clicado com filtros:", filtros.value);
-};
+const cnpjDisplay = ref("");
+
+// Watch para formatar o CNPJ enquanto digita
+watch(cnpjDisplay, (newValue) => {
+  const numbers = newValue.replace(/\D/g, '');
+  filtros.value.cnpj = numbers;
+  cnpjDisplay.value = formatCNPJ(newValue);
+});
+
+function formatCNPJ(value) {
+  if (!value) return '';
+  const numbers = value.replace(/\D/g, '');
+
+  if (numbers.length <= 2) return numbers;
+  if (numbers.length <= 5) return `${numbers.slice(0, 2)}.${numbers.slice(2)}`;
+  if (numbers.length <= 8) return `${numbers.slice(0, 2)}.${numbers.slice(2, 5)}.${numbers.slice(5)}`;
+  if (numbers.length <= 12)
+    return `${numbers.slice(0, 2)}.${numbers.slice(2, 5)}.${numbers.slice(5, 8)}/${numbers.slice(8)}`;
+  return `${numbers.slice(0, 2)}.${numbers.slice(2, 5)}.${numbers.slice(5, 8)}/${numbers.slice(8, 12)}-${numbers.slice(12, 14)}`;
+}
+
+const temFiltrosAtivos = computed(() => {
+  return (
+      filtros.value.name ||
+      filtros.value.cnpj ||
+      filtros.value.ownerName ||
+      filtros.value.status !== null
+  );
+});
 
 const onFiltrar = () => {
-  console.log("Filtrar com valores:", filtros.value);
+  emit('filtrar', {
+    name: filtros.value.name || null,
+    cnpj: filtros.value.cnpj || null,
+    ownerName: filtros.value.ownerName || null,
+    status: filtros.value.status
+  });
 };
+
+const limparFiltros = () => {
+  filtros.value = {
+    name: "",
+    cnpj: "",
+    ownerName: "",
+    status: null,
+  };
+  cnpjDisplay.value = "";
+  emit('filtrar', null);
+};
+
+defineExpose({ limparFiltros });
 </script>

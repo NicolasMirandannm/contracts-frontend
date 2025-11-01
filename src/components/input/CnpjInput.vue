@@ -9,13 +9,14 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-const inputValue = ref(props.modelValue || "");
+const inputValue = ref("");
 
 watch(
     () => props.modelValue,
     (val) => {
       inputValue.value = formatCNPJ(val || "");
-    }
+    },
+    { immediate: true }
 );
 
 function formatCNPJ(value) {
@@ -33,12 +34,10 @@ function removeMask(value) {
   return value.replace(/\D/g, "");
 }
 
-function onInput(e) {
-  const formatted = formatCNPJ(e.target.value);
+function onModelUpdate(val) {
+  const formatted = formatCNPJ(val);
   inputValue.value = formatted;
-
-  const unmaskedValue = removeMask(formatted);
-  emit("update:modelValue", unmaskedValue);
+  emit("update:modelValue", removeMask(formatted));
 }
 </script>
 
@@ -47,7 +46,7 @@ function onInput(e) {
       :model-value="inputValue"
       density="comfortable"
       variant="outlined"
-      @input="onInput"
+      @update:modelValue="onModelUpdate"
       label="CNPJ"
       maxlength="18"
       :readonly="readonly"
