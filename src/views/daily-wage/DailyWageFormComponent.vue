@@ -38,14 +38,6 @@ const hasDiarists = computed(() => selectedDiarists.value.length > 0);
 
 const showDeleteAction = computed(() => props.mode === "create");
 
-const canShowSearchButton = computed(() =>
-    props.mode === "create" &&
-    form.value.workDay &&
-    form.value.startHour &&
-    form.value.endHour &&
-    validateEndHour(form.value.endHour) === true
-);
-
 const resetDiaristasSearch = () => {
   if (showDiaristSelect.value) {
     showDiaristSelect.value = false;
