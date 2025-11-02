@@ -42,22 +42,27 @@
             align-tabs="center"
             grow
         >
-          <v-tab value="diarias">Diárias</v-tab>
           <v-tab value="diaristas">Diaristas</v-tab>
           <v-tab value="empresas">Empresas</v-tab>
+          <v-tab value="diarias">Diárias</v-tab>
+          <v-tab value="pagamentos">Pagamentos</v-tab>
         </v-tabs>
 
         <v-window v-model="selectedTab" class="mt-4" :touch="false">
-          <v-window-item value="diarias">
-            <DailyWage />
-          </v-window-item>
-
           <v-window-item value="diaristas">
             <DayLaborer />
           </v-window-item>
 
           <v-window-item value="empresas">
             <Enterprise />
+          </v-window-item>
+
+          <v-window-item value="diarias">
+            <DailyWage />
+          </v-window-item>
+
+          <v-window-item value="pagamentos">
+            <Payment />
           </v-window-item>
         </v-window>
       </v-container>
@@ -74,6 +79,7 @@ import { useAlert } from "@/composables/useAlert.js";
 import RouteConstants from "@/router/RouteConstants.js";
 import DayLaborer from "@/views/day-laborer/DayLaborer.vue";
 import DailyWage from "@/views/daily-wage/DailyWage.vue";
+import Payment from "@/views/payment/Payment.vue";
 
 const router = useRouter();
 const { showAlert } = useAlert();

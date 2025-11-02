@@ -122,7 +122,8 @@ watch(
             name: val.dayLaborer.name,
             dayLaborerPaymentValue: val.dayLaborerPaymentValue || 0,
             bonus: val.bonus || 0,
-            deduction: val.deduction || 0
+            deduction: val.deduction || 0,
+            paymentId: val.paymentId || ''
           });
         }
       }
@@ -461,11 +462,11 @@ const loadEmpresas = async () => {
         </v-alert>
 
         <!-- Tabela de diaristas -->
-        <v-card v-if="selectedDiarists.length" rounded="lg" class="mb-3 elevation-2">
+        <v-card v-if="selectedDiarists.length" rounded="lg" class="mb-8 elevation-2">
           <div class="table-container">
             <div class="table-header">
               <div class="header-cell">Nome</div>
-              <div class="header-cell">Valor a Pagar</div>
+              <div class="header-cell">Valor diária</div>
               <div class="header-cell">Bônus</div>
               <div class="header-cell">Dedução</div>
               <div v-if="showDeleteAction" class="header-cell text-center">Ações</div>
@@ -478,9 +479,10 @@ const loadEmpresas = async () => {
                   class="table-row"
                   :class="{ 'row-hover': !isReadOnly }"
               >
-                <div class="body-cell" :class="{ 'text-grey': isReadOnly }">
+                <div class="body-cell-nome" :class="{ 'text-grey': isReadOnly }">
                   {{ d.name }}
                 </div>
+
                 <div class="body-cell">
                   <MoneyInput
                       v-model="d.dayLaborerPaymentValue"
@@ -489,7 +491,6 @@ const loadEmpresas = async () => {
                       :disabled="isReadOnly"
                       density="compact"
                       variant="outlined"
-                      class="mt-1"
                   />
                 </div>
                 <div class="body-cell">
@@ -500,7 +501,6 @@ const loadEmpresas = async () => {
                       :disabled="isReadOnly"
                       density="compact"
                       variant="outlined"
-                      class="mt-1"
                   />
                 </div>
                 <div class="body-cell">
@@ -511,7 +511,6 @@ const loadEmpresas = async () => {
                       :disabled="isReadOnly"
                       density="compact"
                       variant="outlined"
-                      class="mt-1"
                   />
                 </div>
                 <div v-if="showDeleteAction" class="body-cell actions-cell">
@@ -528,6 +527,18 @@ const loadEmpresas = async () => {
             </div>
           </div>
         </v-card>
+
+        <v-text-field
+            v-if="props.mode !== 'create' && selectedDiarists[0].paymentId"
+            v-model="selectedDiarists[0].paymentId"
+            label="Pagamento ID"
+            density="compact"
+            variant="outlined"
+            :readonly="true"
+            :disabled="true"
+            rows="2"
+            max-rows="4"
+        />
 
         <v-textarea
             v-model="form.notes"
@@ -582,13 +593,15 @@ const loadEmpresas = async () => {
 </template>
 
 <style scoped>
+
 .table-container {
   display: flex;
   flex-direction: column;
   border-radius: 12px;
   overflow: hidden;
-  max-height: 235px;
+  max-height: 230px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  border: 2px solid rgba(var(--v-theme-borderColor), 0.8);
 }
 
 .table-header {
@@ -597,14 +610,20 @@ const loadEmpresas = async () => {
   top: 0;
   z-index: 2;
   border-bottom: 1px solid var(--v-border-color);
+  background-color: rgb(var(--v-theme-surface2));
+  min-height: 42px;
+  align-items: center;
 }
 
 .header-cell {
   flex: 1;
-  padding: 10px 18px;
   font-weight: 600;
   font-size: 0.875rem;
   text-transform: uppercase;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  background-color: rgb(var(--v-theme-surface2));
 }
 
 .table-body {
@@ -621,6 +640,7 @@ const loadEmpresas = async () => {
 
 .table-row {
   display: flex;
+  height: 50px;
   border-bottom: 1px solid var(--v-border-color);
   transition: background-color 0.2s;
 }
@@ -629,12 +649,18 @@ const loadEmpresas = async () => {
   background-color: rgba(0,0,0,0.03);
 }
 
-.body-cell {
+.body-cell-nome {
   flex: 1;
   padding: 8px 16px;
   min-height: 42px;
   display: flex;
   align-items: center;
+}
+
+.body-cell {
+  flex: 1;
+  padding: 4px 16px;
+  min-height: 42px;
 }
 
 .text-grey {

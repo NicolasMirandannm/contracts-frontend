@@ -1,11 +1,11 @@
 <template>
   <v-card elevation="1" rounded="xl" class="pa-4 mb-4">
     <v-card-text>
-      <v-row dense align="center">
-        <v-col cols="12" sm="4" md="2">
+      <v-row dense align="center" class="flex-wrap">
+        <v-col cols="12" sm="4" md="3">
           <v-text-field
-              v-model="filtros.dayLaborerName"
-              label="Informe o nome do diarista..."
+              v-model="filters.paymentId"
+              label="Informe o ID do pagamento..."
               variant="outlined"
               density="comfortable"
               clearable
@@ -13,22 +13,11 @@
           />
         </v-col>
 
-        <v-col cols="12" sm="4" md="2">
+        <v-col cols="12" sm="4" md="3">
           <v-text-field
-              v-model="filtros.enterpriseName"
-              label="Informe o nome da empresa..."
-              variant="outlined"
-              density="comfortable"
-              clearable
-              hide-details
-          />
-        </v-col>
-
-        <v-col cols="12" sm="4" md="2">
-          <v-text-field
-              v-model="filtros.workDate"
+              v-model="filters.startDate"
               type="date"
-              label="Informe a data da diária..."
+              label="Data inicial"
               variant="outlined"
               density="comfortable"
               clearable
@@ -36,18 +25,16 @@
           />
         </v-col>
 
-        <v-col cols="12" sm="6" md="3" class="d-flex align-center">
-          <v-btn-toggle
-              v-model="filtros.status"
-              color="primary"
+        <v-col cols="12" sm="4" md="3">
+          <v-text-field
+              v-model="filters.endDate"
+              type="date"
+              label="Data final"
               variant="outlined"
-              rounded="lg"
-              mandatory
-              class="w-100"
-          >
-            <v-btn value="PAGO">Pagas</v-btn>
-            <v-btn value="NAO_PAGO">Não pagas</v-btn>
-          </v-btn-toggle>
+              density="comfortable"
+              clearable
+              hide-details
+          />
         </v-col>
 
         <v-col
@@ -65,7 +52,7 @@
             />
 
             <v-btn
-                v-if="temFiltrosAtivos"
+                v-if="hasActiveFilters"
                 color="error"
                 variant="tonal"
                 icon="mdi-close"
@@ -90,45 +77,55 @@
   </v-card>
 </template>
 
+
 <script setup>
-import { ref, defineEmits, computed } from "vue";
+import { ref, defineEmits, computed } from 'vue';
 
 const emit = defineEmits(['cadastrar', 'filtrar']);
 
-const filtros = ref({
-  dayLaborerName: "",
-  enterpriseName: "",
-  workDate: null,
-  status: null,
+const today = new Date();
+const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+  .toISOString()
+  .substring(0, 10);
+const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+  .toISOString()
+  .substring(0, 10);
+
+
+const filters = ref({
+  paymentId: '',
+  startDate: startOfMonth,
+  endDate: endOfMonth,
 });
 
-const temFiltrosAtivos = computed(() => {
+
+const hasActiveFilters = computed(() => {
   return (
-      filtros.value.dayLaborerName ||
-      filtros.value.enterpriseName ||
-      filtros.value.workDate ||
-      filtros.value.status !== null
+    filters.value.paymentId ||
+    filters.value.startDate !== startOfMonth ||
+    filters.value.endDate !== endOfMonth
   );
 });
 
+
 const onFiltrar = () => {
   emit('filtrar', {
-    dayLaborerName: filtros.value.dayLaborerName || null,
-    enterpriseName: filtros.value.enterpriseName || null,
-    workDate: filtros.value.workDate || null,
-    status: filtros.value.status
+    dayLaborerName: filters.value.paymentId || null,
+    startDate: filters.value.startDate || null,
+    endDate: filters.value.endDate || null,
   });
 };
 
+
 const limparFiltros = () => {
-  filtros.value = {
-    dayLaborerName: "",
-    enterpriseName: "",
-    workDate: null,
-    status: null,
+  filters.value = {
+    paymentId: '',
+    startDate: startOfMonth,
+    endDate: endOfMonth,
   };
   emit('filtrar', null);
 };
+
 
 defineExpose({ limparFiltros });
 </script>

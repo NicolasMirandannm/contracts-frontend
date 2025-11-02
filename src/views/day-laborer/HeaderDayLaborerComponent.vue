@@ -53,35 +53,35 @@
           </v-btn-toggle>
         </v-col>
 
-        <v-col cols="12" sm="6" md="3" class="d-flex align-center justify-end gap-2">
-          <div class="w-100 d-flex justify-center align-center">
+        <v-col
+            cols="12"
+            md="3"
+            class="d-flex align-center justify-end flex-wrap"
+        >
+          <div class="d-flex align-center justify-end w-100 flex-wrap gap-2">
             <v-btn
                 color="primary"
                 variant="tonal"
-                prepend-icon="mdi-magnify"
-                rounded="lg"
+                icon="mdi-magnify"
                 @click="onFiltrar"
-            >
-              Filtrar
-            </v-btn>
+                class="ma-1"
+            />
 
             <v-btn
                 v-if="temFiltrosAtivos"
-                color="red"
+                color="error"
                 variant="tonal"
-                prepend-icon="mdi-close"
-                rounded="lg"
+                icon="mdi-close"
                 @click="limparFiltros"
-            >
-              Limpar filtros
-            </v-btn>
+                class="ma-1"
+            />
 
-            <v-spacer style="max-width: 24px" />
             <v-btn
                 color="primary"
                 variant="flat"
                 prepend-icon="mdi-plus"
                 rounded="lg"
+                class="ma-1"
                 @click="$emit('cadastrar')"
             >
               Cadastrar
