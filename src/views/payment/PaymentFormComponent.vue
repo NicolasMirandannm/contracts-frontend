@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import MoneyInput from '@/components/input/MoneyInput.vue';
+import BaseDataTable from "@/components/table/BaseDataTable.vue";
 
 // -------- Props/Emits --------
 const props = defineProps({
@@ -83,14 +84,16 @@ watch(selectedIds, () => {
 }, { deep: true });
 
 // -------- Mocks --------
-function mockDelay(ms = 400) { return new Promise(r => setTimeout(r, ms)); }
+function mockDelay(ms = 400) {
+  return new Promise(r => setTimeout(r, ms));
+}
 
 async function fetchDiarists() {
   firstLoad.value = true;
   if (catalogLoaded.value.diarists) return;
   await mockDelay();
   diarists.value = [
-    { id: 'd1', name: 'Ana Sousa', pixKey: '1234'},
+    { id: 'd1', name: 'Ana Sousa', pixKey: '1234' },
     { id: 'd2', name: 'Bruno Lima', pixKey: null },
     { id: 'd3', name: 'Carla Mendes', pixKey: null },
   ];
@@ -120,16 +123,76 @@ async function fetchAvailableDailyWages() {
 
   await mockDelay();
   const base = [
-    { id: 'w1', enterprise: { id: 'e1', name: 'Construsul Ltda' }, dayLaborerPaymentValue: 180, workDate: '2025-11-01', dayLaborerId: 'd1' },
-    { id: 'w2', enterprise: { id: 'e2', name: 'ServLar Serviços' }, dayLaborerPaymentValue: 200, workDate: '2025-11-03', dayLaborerId: 'd1' },
-    { id: 'w3', enterprise: { id: 'e1', name: 'Construsul Ltda' }, dayLaborerPaymentValue: 180, workDate: '2025-11-06', dayLaborerId: 'd1' },
-    { id: 'w4', enterprise: { id: 'e3', name: 'Alfa Obras' }, dayLaborerPaymentValue: 220, workDate: '2025-11-10', dayLaborerId: 'd1' },
-    { id: 'w5', enterprise: { id: 'e2', name: 'ServLar Serviços' }, dayLaborerPaymentValue: 200, workDate: '2025-11-12', dayLaborerId: 'd1' },
-    { id: 'w1', enterprise: { id: 'e1', name: 'Construsul Ltda' }, dayLaborerPaymentValue: 180, workDate: '2025-11-01', dayLaborerId: 'd1' },
-    { id: 'w2', enterprise: { id: 'e2', name: 'ServLar Serviços' }, dayLaborerPaymentValue: 200, workDate: '2025-11-03', dayLaborerId: 'd1' },
-    { id: 'w3', enterprise: { id: 'e1', name: 'Construsul Ltda' }, dayLaborerPaymentValue: 180, workDate: '2025-11-06', dayLaborerId: 'd1' },
-    { id: 'w4', enterprise: { id: 'e3', name: 'Alfa Obras' }, dayLaborerPaymentValue: 220, workDate: '2025-11-10', dayLaborerId: 'd1' },
-    { id: 'w5', enterprise: { id: 'e2', name: 'ServLar Serviços' }, dayLaborerPaymentValue: 200, workDate: '2025-11-12', dayLaborerId: 'd1' }
+    {
+      id: 'w1',
+      enterprise: { id: 'e1', name: 'Construsul Ltda' },
+      dayLaborerPaymentValue: 180,
+      workDate: '2025-11-01',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w2',
+      enterprise: { id: 'e2', name: 'ServLar Serviços' },
+      dayLaborerPaymentValue: 200,
+      workDate: '2025-11-03',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w3',
+      enterprise: { id: 'e1', name: 'Construsul Ltda' },
+      dayLaborerPaymentValue: 180,
+      workDate: '2025-11-06',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w4',
+      enterprise: { id: 'e3', name: 'Alfa Obras' },
+      dayLaborerPaymentValue: 220,
+      workDate: '2025-11-10',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w5',
+      enterprise: { id: 'e2', name: 'ServLar Serviços' },
+      dayLaborerPaymentValue: 200,
+      workDate: '2025-11-12',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w1',
+      enterprise: { id: 'e1', name: 'Construsul Ltda' },
+      dayLaborerPaymentValue: 180,
+      workDate: '2025-11-01',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w2',
+      enterprise: { id: 'e2', name: 'ServLar Serviços' },
+      dayLaborerPaymentValue: 200,
+      workDate: '2025-11-03',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w3',
+      enterprise: { id: 'e1', name: 'Construsul Ltda' },
+      dayLaborerPaymentValue: 180,
+      workDate: '2025-11-06',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w4',
+      enterprise: { id: 'e3', name: 'Alfa Obras' },
+      dayLaborerPaymentValue: 220,
+      workDate: '2025-11-10',
+      dayLaborerId: 'd1'
+    },
+    {
+      id: 'w5',
+      enterprise: { id: 'e2', name: 'ServLar Serviços' },
+      dayLaborerPaymentValue: 200,
+      workDate: '2025-11-12',
+      dayLaborerId: 'd1'
+    }
   ];
 
   const inRange = d => d >= form.value.startDate && d <= form.value.endDate;
@@ -162,9 +225,13 @@ async function onSubmit() {
   isSubmitting.value = false;
 }
 
-function onCancel() { emit('cancel'); }
+function onCancel() {
+  emit('cancel');
+}
 
-async function ensureDiaristsLoaded() { await fetchDiarists(); }
+async function ensureDiaristsLoaded() {
+  await fetchDiarists();
+}
 </script>
 
 <template>
@@ -178,11 +245,14 @@ async function ensureDiaristsLoaded() { await fetchDiarists(); }
       <div class="text-center mb-6">
         <h2 class="text-h5 font-weight-bold text-primary">DiarixPro</h2>
         <p class="text-body-2 text-grey-darken-1">
-          {{ props.mode === 'create' ? 'Cadastro de Pagamento' : props.mode === 'edit' ? 'Editar Pagamento' : 'Dados do Pagamento' }}
+          {{
+            props.mode === 'create' ? 'Cadastro de Pagamento' : props.mode === 'edit' ? 'Editar Pagamento' : 'Dados do Pagamento'
+          }}
         </p>
       </div>
 
-      <v-form ref="formRef" v-model="formValid" @submit.prevent="onSubmit" class="d-flex flex-column gap-4" style="width: 90%">
+      <v-form ref="formRef" v-model="formValid" @submit.prevent="onSubmit" class="d-flex flex-column gap-4"
+              style="width: 90%">
         <!-- Linha 1: Diarista + Empresa -->
         <v-row dense>
           <v-col cols="12" md="6">
@@ -247,54 +317,53 @@ async function ensureDiaristsLoaded() { await fetchDiarists(); }
         </v-row>
 
         <!-- Tabela de diárias -->
-        <v-card v-if="availableDailyWages.length" rounded="lg" class="mb-8 elevation-2">
-          <div class="table-container">
-            <div class="table-header">
-              <div class="header-cell" style="width: 45%">Empresa</div>
-              <div class="header-cell" style="width: 20%">Valor</div>
-              <div class="header-cell" style="width: 20%">Data</div>
-              <div class="header-cell" style="width: 15%">
-                <v-checkbox
-                    v-model="allSelected"
-                    hide-details
-                    density="compact"
-                    :true-value="true"
-                    :false-value="false"
-                    :disabled="availableDailyWages.length === 0 || isReadOnly"
-                />
-              </div>
-            </div>
+        <BaseDataTable
+            v-if="availableDailyWages.length"
+            class="mb-8 elevation-2"
+            :headers="[
+              { key: 'enterprise', label: 'Empresa', align: 'left', width: '45%' },
+              { key: 'dayLaborerPaymentValue', label: 'Valor', width: '20%' },
+              { key: 'workDate', label: 'Data', width: '20%' }
+            ]"
+            :items="availableDailyWages"
+            :showActions="true"
+            :isReadOnly="isReadOnly"
+            :scroll="true"
+            :height="220"
+        >
+          <template #header-actions>
+            <v-checkbox
+                v-model="allSelected"
+                hide-details density="compact" color="primary"
+                :true-value="true" :false-value="false"
+                :disabled="availableDailyWages.length === 0 || isReadOnly"
+            />
+          </template>
 
-            <div :class="['table-body', { 'scrollable-body': availableDailyWages.length >= 3 }]">
-              <div
-                  v-for="dw in availableDailyWages"
-                  :key="dw.id"
-                  class="table-row hover:bg-grey-lighten-5 transition-colors"
-              >
-                <div class="body-cell text-left"
-                    style="width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                >
-                  {{ dw.enterprise?.name || '-' }}
-                </div>
-                <div class="body-cell text-center" style="width: 20%">
-                  {{ currencyBRL(dw.dayLaborerPaymentValue) }}
-                </div>
-                <div class="body-cell text-center" style="width: 20%">
-                  {{ dw.workDate?.split('-').reverse().join('/') }}
-                </div>
-                <div class="body-cell text-center" style="width: 15%">
-                  <v-checkbox
-                      v-model="selectedIds"
-                      :value="dw.id"
-                      hide-details
-                      density="compact"
-                      :disabled="isReadOnly"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </v-card>
+          <template #cell-enterprise="{ item }">
+            {{ item.enterprise?.name || '-' }}
+          </template>
+
+          <template #cell-dayLaborerPaymentValue="{ value }">
+            {{ currencyBRL(value) }}
+          </template>
+
+          <template #cell-workDate="{ value }">
+            {{ value?.split('-').reverse().join('/') }}
+          </template>
+
+          <template #actions="{ item }">
+            <v-checkbox
+                v-model="selectedIds"
+                :value="item.id"
+                hide-details density="compact" color="primary"
+                :disabled="isReadOnly"
+            />
+          </template>
+        </BaseDataTable>
+
+
+
 
         <!-- Linha 3: Data pagamento + Método -->
         <v-row dense>
@@ -329,7 +398,7 @@ async function ensureDiaristsLoaded() { await fetchDiarists(); }
 
         <v-row dense>
           <v-col cols="12" md="6">
-            <MoneyInput v-model="form.value" label="Valor total do pagamento" :readonly="true" :disabled="true" />
+            <MoneyInput v-model="form.value" label="Valor total do pagamento" :readonly="true" :disabled="true"/>
           </v-col>
 
           <v-col cols="12" md="6">
@@ -395,10 +464,8 @@ async function ensureDiaristsLoaded() { await fetchDiarists(); }
   border-radius: 12px;
   overflow: hidden;
   max-height: 200px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  border: 2px solid rgba(var(--v-theme-borderColor), 0.8);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
-
 
 
 .table-header {
@@ -443,7 +510,7 @@ async function ensureDiaristsLoaded() { await fetchDiarists(); }
 }
 
 .row-hover:hover {
-  background-color: rgba(0,0,0,0.03);
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .body-cell {

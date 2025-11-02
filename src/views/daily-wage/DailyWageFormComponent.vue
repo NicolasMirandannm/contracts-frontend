@@ -5,6 +5,7 @@ import DayLaborerService from "@/api/services/day-laborer/DayLaborerService.js";
 import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
 import DailyWageService from "@/api/services/daily-wage/DailyWageService.js";
 import MoneyInput from "@/components/input/MoneyInput.vue";
+import BaseDataTable from "@/components/table/BaseDataTable.vue";
 
 const props = defineProps({
   mode: { type: String, default: "create" },
@@ -358,7 +359,8 @@ const loadEmpresas = async () => {
         </p>
       </div>
 
-      <v-form ref="formRef" v-model="formValid" @submit.prevent="onSubmit" class="d-flex flex-column gap-4" style="width: 90%">
+      <v-form ref="formRef" v-model="formValid" @submit.prevent="onSubmit" class="d-flex flex-column gap-4"
+              style="width: 90%">
         <v-select
             v-model="form.enterprise"
             :items="empresas"
@@ -462,71 +464,86 @@ const loadEmpresas = async () => {
         </v-alert>
 
         <!-- Tabela de diaristas -->
-        <v-card v-if="selectedDiarists.length" rounded="lg" class="mb-8 elevation-2">
-          <div class="table-container">
-            <div class="table-header">
-              <div class="header-cell">Nome</div>
-              <div class="header-cell">Valor diária</div>
-              <div class="header-cell">Bônus</div>
-              <div class="header-cell">Dedução</div>
-              <div v-if="showDeleteAction" class="header-cell text-center">Ações</div>
+        <BaseDataTable
+            v-if="selectedDiarists.length"
+            :headers="[
+              { key: 'name', label: 'Nome', align: 'left', width: '25%' },
+              { key: 'dayLaborerPaymentValue', label: 'Valor diária', width: '25%' },
+              { key: 'bonus', label: 'Bônus', width: '25%' },
+              { key: 'deduction', label: 'Dedução', width: '25%' }
+            ]"
+            :items="selectedDiarists"
+            :showActions="showDeleteAction"
+            :isReadOnly="isReadOnly"
+            :scroll="true"
+            :height="230"
+        >
+          <!-- Cabeçalho da coluna de ações -->
+          <template #header-actions>
+            <div class="font-weight-600 text-uppercase text-center" style="width: 100%; font-size: 0.875rem;">
+              Ações
             </div>
+          </template>
 
-            <div :class="['table-body', { 'scrollable-body': selectedDiarists.length >= 3 }]">
-              <div
-                  v-for="d in selectedDiarists"
-                  :key="d.id"
-                  class="table-row"
-                  :class="{ 'row-hover': !isReadOnly }"
-              >
-                <div class="body-cell-nome" :class="{ 'text-grey': isReadOnly }">
-                  {{ d.name }}
-                </div>
-
-                <div class="body-cell">
-                  <MoneyInput
-                      v-model="d.dayLaborerPaymentValue"
-                      label=" "
-                      :readonly="isReadOnly"
-                      :disabled="isReadOnly"
-                      density="compact"
-                      variant="outlined"
-                  />
-                </div>
-                <div class="body-cell">
-                  <MoneyInput
-                      v-model="d.bonus"
-                      label=" "
-                      :readonly="isReadOnly"
-                      :disabled="isReadOnly"
-                      density="compact"
-                      variant="outlined"
-                  />
-                </div>
-                <div class="body-cell">
-                  <MoneyInput
-                      v-model="d.deduction"
-                      label=" "
-                      :readonly="isReadOnly"
-                      :disabled="isReadOnly"
-                      density="compact"
-                      variant="outlined"
-                  />
-                </div>
-                <div v-if="showDeleteAction" class="body-cell actions-cell">
-                  <v-btn
-                      icon="mdi-delete"
-                      color="red lighten-2"
-                      size="small"
-                      variant="text"
-                      @click="removeDiarist(d.id)"
-                      :disabled="isReadOnly"
-                  />
-                </div>
-              </div>
+          <!-- Coluna Nome -->
+          <template #cell-name="{ item }">
+            <div class="body-cell-nome" :class="{ 'text-grey': isReadOnly }">
+              {{ item.name }}
             </div>
-          </div>
-        </v-card>
+          </template>
+
+          <!-- Coluna Valor Diária -->
+          <template #cell-dayLaborerPaymentValue="{ item }">
+            <MoneyInput
+                v-model="item.dayLaborerPaymentValue"
+                label=" "
+                :readonly="isReadOnly"
+                :disabled="isReadOnly"
+                density="compact"
+                variant="outlined"
+                class="mt-6"
+            />
+          </template>
+
+          <!-- Coluna Bônus -->
+          <template #cell-bonus="{ item }">
+            <MoneyInput
+                v-model="item.bonus"
+                label=" "
+                :readonly="isReadOnly"
+                :disabled="isReadOnly"
+                density="compact"
+                variant="outlined"
+                class="mt-6"
+            />
+          </template>
+
+          <!-- Coluna Dedução -->
+          <template #cell-deduction="{ item }">
+            <MoneyInput
+                v-model="item.deduction"
+                label=" "
+                :readonly="isReadOnly"
+                :disabled="isReadOnly"
+                density="compact"
+                variant="outlined"
+                class="mt-6"
+            />
+          </template>
+
+          <!-- Coluna Ações -->
+          <template #actions="{ item }">
+            <v-btn
+                icon="mdi-delete"
+                color="red-lighten-2"
+                size="small"
+                variant="text"
+                @click="removeDiarist(item.id)"
+                :disabled="isReadOnly"
+            />
+          </template>
+        </BaseDataTable>
+
 
         <v-text-field
             v-if="props.mode !== 'create' && selectedDiarists[0].paymentId"
@@ -600,8 +617,7 @@ const loadEmpresas = async () => {
   border-radius: 12px;
   overflow: hidden;
   max-height: 230px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  border: 2px solid rgba(var(--v-theme-borderColor), 0.8);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .table-header {
@@ -646,7 +662,7 @@ const loadEmpresas = async () => {
 }
 
 .row-hover:hover {
-  background-color: rgba(0,0,0,0.03);
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .body-cell-nome {
