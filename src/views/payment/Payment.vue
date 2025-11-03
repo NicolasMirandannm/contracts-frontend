@@ -9,21 +9,25 @@ import PaymentService from '@/api/services/payment/PaymentService.js';
 const payments = ref({ content: [], totalElements: 0, totalPages: 0 });
 const loading = ref(false);
 
+const today = new Date();
+const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    .toISOString()
+    .substring(0, 10);
+const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+    .toISOString()
+    .substring(0, 10);
+
 
 const currentFilters = ref({
-  dayLaborerName: null,
-  enterpriseName: null,
-  startDate: null,
-  endDate: null,
+  paymentId: null,
+  startDate: startOfMonth,
+  endDate: endOfMonth,
 });
-
 
 const page = ref(1);
 const itemsPerPage = ref(5);
 
-
 const pageCount = computed(() => payments.value.totalPages || 0);
-
 
 const loadPayments = async (pageIndex = 0) => {
   try {
@@ -41,8 +45,8 @@ const loadPayments = async (pageIndex = 0) => {
       }
     });
     // Call the payment service
-    const response = await PaymentService.findAll(params);
-    payments.value = response;
+    console.log(params)
+    payments.value = await PaymentService.findAll(params);
   } catch (error) {
     console.error('Erro ao buscar pagamentos:', error);
     payments.value = { content: [], totalElements: 0, totalPages: 0 };
@@ -70,8 +74,7 @@ const formatCurrency = (value) => {
 // Table headers for the payment list
 const headers = [
   { title: 'Data', key: 'paymentDateFormatted', align: 'center' },
-  { title: 'Diarista(s)', key: 'diaristas', align: 'center' },
-  { title: 'Empresa(s)', key: 'empresas', align: 'center' },
+  { title: 'Diarista', key: 'dayLaborer', align: 'center' },
   { title: 'Valor', key: 'valueFormatted', align: 'center' },
   { title: 'Método', key: 'method', align: 'center' },
   { title: 'Ações', key: 'acoes', align: 'center', sortable: false },
@@ -80,25 +83,11 @@ const headers = [
 // Compute a formatted version of the payments for display
 const paymentsFormatted = computed(() => {
   return payments.value.content.map((payment) => {
-    // Derive diarist and enterprise names from the embedded daily wages
-    const diarists = Array.isArray(payment.dailyWages)
-      ? payment.dailyWages
-          .map((dw) => dw?.dayLaborer?.name)
-          .filter(Boolean)
-          .join(', ')
-      : '-';
-    const enterprises = Array.isArray(payment.dailyWages)
-      ? payment.dailyWages
-          .map((dw) => dw?.enterprise?.name)
-          .filter(Boolean)
-          .join(', ')
-      : '-';
     return {
       ...payment,
       paymentDateFormatted: formatDate(payment.date),
       valueFormatted: formatCurrency(payment.value),
-      diaristas: diarists || '-',
-      empresas: enterprises || '-',
+      dayLaborer: payment.dayLaborer?.name || '-',
     };
   });
 });
@@ -219,10 +208,7 @@ onMounted(async () => {
         <template #header.paymentDateFormatted="{ column }">
           <span class="font-weight-bold">{{ column.title }}</span>
         </template>
-        <template #header.diaristas="{ column }">
-          <span class="font-weight-bold">{{ column.title }}</span>
-        </template>
-        <template #header.empresas="{ column }">
+        <template #header.dayLaborer="{ column }">
           <span class="font-weight-bold">{{ column.title }}</span>
         </template>
         <template #header.valueFormatted="{ column }">
@@ -239,11 +225,8 @@ onMounted(async () => {
         <template #item.paymentDateFormatted="{ item }">
           {{ item.paymentDateFormatted }}
         </template>
-        <template #item.diaristas="{ item }">
-          {{ item.diaristas }}
-        </template>
-        <template #item.empresas="{ item }">
-          {{ item.empresas }}
+        <template #item.dayLaborer="{ item }">
+          {{ item.dayLaborer || '-' }}
         </template>
         <template #item.valueFormatted="{ item }">
           <span>{{ item.valueFormatted }}</span>

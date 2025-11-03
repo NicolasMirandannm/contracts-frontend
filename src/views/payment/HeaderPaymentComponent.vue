@@ -93,7 +93,7 @@ const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
 
 
 const filters = ref({
-  paymentId: '',
+  paymentId: null,
   startDate: startOfMonth,
   endDate: endOfMonth,
 });

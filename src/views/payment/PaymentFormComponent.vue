@@ -2,6 +2,10 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import MoneyInput from '@/components/input/MoneyInput.vue';
 import BaseDataTable from "@/components/table/BaseDataTable.vue";
+import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
+import DayLaborerService from "@/api/services/day-laborer/DayLaborerService.js";
+import DailyWageService from "@/api/services/daily-wage/DailyWageService.js";
+import PaymentService from "@/api/services/payment/PaymentService.js";
 
 // -------- Props/Emits --------
 const props = defineProps({
@@ -15,6 +19,12 @@ const now = new Date();
 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().substring(0, 10);
 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().substring(0, 10);
 const today = now.toISOString().substring(0, 10);
+const snackbar = ref({ show: false, color: "success", message: "" });
+const carregando = ref(false);
+
+function showSnackbar(message, color = "info") {
+  snackbar.value = { show: true, color, message };
+}
 
 const form = ref({
   ...props.modelValue,
@@ -22,7 +32,7 @@ const form = ref({
   enterprise: null,
   startDate: startOfMonth,
   endDate: endOfMonth,
-  date: today, // pré-preenchida com data atual
+  date: today,
   method: null,
   observations: null,
   value: 0,
@@ -51,7 +61,7 @@ const paymentMethods = [
   { title: 'Outro', value: 'OUTRO' },
 ];
 
-// -------- Diárias (mock) --------
+// -------- Diárias --------
 const availableDailyWages = ref([]);
 const selectedIds = ref([]);
 
@@ -70,6 +80,16 @@ const allSelected = computed({
     }
   },
 });
+
+
+watch(
+    () => [form.value.diarist, form.value.enterprise, form.value.startDate, form.value.endDate],
+    ([diarist, enterprise, startDate, endDate]) => {
+      if (diarist && startDate && endDate) {
+        fetchAvailableDailyWages(diarist, enterprise, startDate, endDate);
+      }
+    }
+);
 
 
 // total automático
@@ -91,118 +111,64 @@ function mockDelay(ms = 400) {
 async function fetchDiarists() {
   firstLoad.value = true;
   if (catalogLoaded.value.diarists) return;
-  await mockDelay();
-  diarists.value = [
-    { id: 'd1', name: 'Ana Sousa', pixKey: '1234' },
-    { id: 'd2', name: 'Bruno Lima', pixKey: null },
-    { id: 'd3', name: 'Carla Mendes', pixKey: null },
-  ];
+
+  try {
+    const response = await DayLaborerService.findAll();
+    diarists.value = Array.isArray(response)
+        ? response
+        : response?.content || [];
+  } catch (error) {
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao buscar diáristas: " + msg, "error");
+    diarists.value = [];
+  }
   catalogLoaded.value.diarists = true;
 }
 
 async function fetchEnterprises() {
   if (catalogLoaded.value.enterprises) return;
-  await mockDelay();
-  enterprises.value = [
-    { id: 'e1', name: 'Construsul Ltda' },
-    { id: 'e2', name: 'ServLar Serviços' },
-    { id: 'e3', name: 'Alfa Obras' },
-  ];
+  try {
+    const response = await EnterpriseService.findAll();
+    enterprises.value = Array.isArray(response)
+        ? response
+        : response?.content || [];
+  } catch (error) {
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao buscar empresas: " + msg, "error");
+    enterprises.value = [];
+  }
   catalogLoaded.value.enterprises = true;
 }
 
-/**
- * Busca (mock) diárias disponíveis
- */
-async function fetchAvailableDailyWages() {
-  if (!form.value.diarist || !form.value.startDate || !form.value.endDate) {
+async function fetchAvailableDailyWages(diaristId, enterprise, startDate, endDate) {
+  try {
+    carregando.value = true;
+    const params = {
+      paymentStatus: 'NAO_PAGO',
+      enterpriseId: enterprise ? enterprise.id : null,
+      startDate: startDate,
+      endDate: endDate
+    };
+
+    Object.keys(params).forEach(key => {
+      if (params[key] === null || params[key] === '') {
+        delete params[key];
+      }
+    });
+    const response = await DailyWageService.findAllByDiarist(diaristId, params);
+    availableDailyWages.value = Array.isArray(response)
+        ? response
+        : [];
+
+  } catch (error) {
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao buscar diárias: " + msg, "error");
     availableDailyWages.value = [];
-    selectedIds.value = [];
-    return;
+  } finally {
+    carregando.value = false;
   }
-
-  await mockDelay();
-  const base = [
-    {
-      id: 'w1',
-      enterprise: { id: 'e1', name: 'Construsul Ltda' },
-      dayLaborerPaymentValue: 180,
-      workDate: '2025-11-01',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w2',
-      enterprise: { id: 'e2', name: 'ServLar Serviços' },
-      dayLaborerPaymentValue: 200,
-      workDate: '2025-11-03',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w3',
-      enterprise: { id: 'e1', name: 'Construsul Ltda' },
-      dayLaborerPaymentValue: 180,
-      workDate: '2025-11-06',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w4',
-      enterprise: { id: 'e3', name: 'Alfa Obras' },
-      dayLaborerPaymentValue: 220,
-      workDate: '2025-11-10',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w5',
-      enterprise: { id: 'e2', name: 'ServLar Serviços' },
-      dayLaborerPaymentValue: 200,
-      workDate: '2025-11-12',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w1',
-      enterprise: { id: 'e1', name: 'Construsul Ltda' },
-      dayLaborerPaymentValue: 180,
-      workDate: '2025-11-01',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w2',
-      enterprise: { id: 'e2', name: 'ServLar Serviços' },
-      dayLaborerPaymentValue: 200,
-      workDate: '2025-11-03',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w3',
-      enterprise: { id: 'e1', name: 'Construsul Ltda' },
-      dayLaborerPaymentValue: 180,
-      workDate: '2025-11-06',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w4',
-      enterprise: { id: 'e3', name: 'Alfa Obras' },
-      dayLaborerPaymentValue: 220,
-      workDate: '2025-11-10',
-      dayLaborerId: 'd1'
-    },
-    {
-      id: 'w5',
-      enterprise: { id: 'e2', name: 'ServLar Serviços' },
-      dayLaborerPaymentValue: 200,
-      workDate: '2025-11-12',
-      dayLaborerId: 'd1'
-    }
-  ];
-
-  const inRange = d => d >= form.value.startDate && d <= form.value.endDate;
-  let rows = base.filter(w => w.dayLaborerId === form.value.diarist && inRange(w.workDate));
-  if (form.value.enterprise) rows = rows.filter(w => w.enterprise.id === form.value.enterprise);
-
-  availableDailyWages.value = rows;
 }
 
-watch(() => [form.value.diarist, form.value.enterprise, form.value.startDate, form.value.endDate], fetchAvailableDailyWages, { deep: true });
 
 onMounted(async () => {
   await fetchEnterprises();
@@ -215,14 +181,42 @@ function currencyBRL(n) {
 
 async function onSubmit() {
   const { valid } = (await formRef.value?.validate()) || { valid: true };
-  if (!valid) return;
+  if (!valid) {
+    showSnackbar("Por favor, corrija os erros do formulário", "error");
+    return;
+  }
 
   if (!form.value.diarist || selectedIds.value.length === 0) return;
 
   isSubmitting.value = true;
-  await new Promise(r => setTimeout(r, 500));
-  emit('submit');
-  isSubmitting.value = false;
+  const paymentDto = {
+    dailyWages: selectedIds.value.map(id => ({id})),
+    date: form.value.date,
+    method: form.value.method,
+    observations: form.value.observations,
+    version: form.value.version
+  };
+
+  try {
+    if (props.mode === "create") {
+      const response = await PaymentService.create(paymentDto);
+      const msg = `Pagamento de ${currencyBRL(response.value)} cadastrado com sucesso para o(a) diárista ${selectedDiarist.value.name}.`;
+      showSnackbar(msg, "success");
+      setTimeout(() => emit("submit"), 500);
+
+    } else if (props.mode === "edit") {
+      const response = await PaymentService.update(form.value.id, paymentDto);
+      const msg = `Pagamento de ${currencyBRL(response.value)} atualizado com sucesso para o(a) diárista ${selectedDiarist.value.name}.`;
+      showSnackbar(msg, "success");
+      setTimeout(() => emit("submit"), 500);
+    }
+
+  } catch (error) {
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao processar pagamento: " + msg, "error");
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 
 function onCancel() {
@@ -322,7 +316,7 @@ async function ensureDiaristsLoaded() {
             class="mb-8 elevation-2"
             :headers="[
               { key: 'enterprise', label: 'Empresa', align: 'left', width: '45%' },
-              { key: 'dayLaborerPaymentValue', label: 'Valor', width: '20%' },
+              { key: 'valuePaid', label: 'Valor', width: '20%' },
               { key: 'workDate', label: 'Data', width: '20%' }
             ]"
             :items="availableDailyWages"
@@ -336,7 +330,7 @@ async function ensureDiaristsLoaded() {
                 v-model="allSelected"
                 hide-details density="compact" color="primary"
                 :true-value="true" :false-value="false"
-                :disabled="availableDailyWages.length === 0 || isReadOnly"
+                :disabled="availableDailyWages?.length === 0 || isReadOnly"
             />
           </template>
 
@@ -344,7 +338,7 @@ async function ensureDiaristsLoaded() {
             {{ item.enterprise?.name || '-' }}
           </template>
 
-          <template #cell-dayLaborerPaymentValue="{ value }">
+          <template #cell-valuePaid="{ value }">
             {{ currencyBRL(value) }}
           </template>
 
@@ -362,9 +356,6 @@ async function ensureDiaristsLoaded() {
           </template>
         </BaseDataTable>
 
-
-
-
         <!-- Linha 3: Data pagamento + Método -->
         <v-row dense>
           <v-col cols="12" md="6">
@@ -377,6 +368,7 @@ async function ensureDiaristsLoaded() {
                 :readonly="isReadOnly"
                 :disabled="isReadOnly"
                 required
+                :rules="[v => !!v || 'Campo obrigatório']"
             />
           </v-col>
 
@@ -392,13 +384,31 @@ async function ensureDiaristsLoaded() {
                 :readonly="isReadOnly"
                 :disabled="isReadOnly"
                 required
+                :rules="[v => !!v || 'Campo obrigatório']"
             />
           </v-col>
         </v-row>
 
         <v-row dense>
-          <v-col cols="12" md="6">
-            <MoneyInput v-model="form.value" label="Valor total do pagamento" :readonly="true" :disabled="true"/>
+          <v-col cols="12" md="3">
+            <MoneyInput
+                v-model="form.value"
+                label="Valor total do pagamento"
+                :readonly="true"
+                :disabled="true"
+                :rules="[v => !!v || 'Campo obrigatório']"
+            />
+          </v-col>
+
+          <v-col cols="12" md="3">
+            <v-text-field
+                v-model="selectedIds.length"
+                label="Quantidade de diárias"
+                variant="outlined"
+                density="comfortable"
+                :readonly="true"
+                :disabled="true"
+            />
           </v-col>
 
           <v-col cols="12" md="6">
@@ -453,6 +463,16 @@ async function ensureDiaristsLoaded() {
         </div>
       </v-form>
     </v-card>
+
+    <v-snackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        timeout="4000"
+        location="top right"
+        variant="flat"
+    >
+      {{ snackbar.message }}
+    </v-snackbar>
   </v-container>
 </template>
 

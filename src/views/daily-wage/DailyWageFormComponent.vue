@@ -332,7 +332,8 @@ const loadEmpresas = async () => {
         ? response
         : response?.content || [];
   } catch (error) {
-    console.error("Erro ao buscar empresas:", error);
+    let msg = error?.response?.data?.message || "Erro desconhecido";
+    showSnackbar("Erro ao buscar empresas: " + msg, "error");
     empresas.value = [];
   }
 };
