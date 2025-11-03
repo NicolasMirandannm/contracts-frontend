@@ -5,7 +5,6 @@ import HeaderPaymentComponent from '@/views/payment/HeaderPaymentComponent.vue';
 import PaymentFormComponent from '@/views/payment/PaymentFormComponent.vue';
 import PaymentService from '@/api/services/payment/PaymentService.js';
 
-
 const payments = ref({ content: [], totalElements: 0, totalPages: 0 });
 const loading = ref(false);
 
@@ -45,7 +44,6 @@ const loadPayments = async (pageIndex = 0) => {
       }
     });
     // Call the payment service
-    console.log(params)
     payments.value = await PaymentService.findAll(params);
   } catch (error) {
     console.error('Erro ao buscar pagamentos:', error);
@@ -87,7 +85,8 @@ const paymentsFormatted = computed(() => {
       ...payment,
       paymentDateFormatted: formatDate(payment.date),
       valueFormatted: formatCurrency(payment.value),
-      dayLaborer: payment.dayLaborer?.name || '-',
+      dayLaborer: payment.dayLaborer,
+      version: payment.version
     };
   });
 });
@@ -226,7 +225,7 @@ onMounted(async () => {
           {{ item.paymentDateFormatted }}
         </template>
         <template #item.dayLaborer="{ item }">
-          {{ item.dayLaborer || '-' }}
+          {{ item.dayLaborer?.name || '-' }}
         </template>
         <template #item.valueFormatted="{ item }">
           <span>{{ item.valueFormatted }}</span>

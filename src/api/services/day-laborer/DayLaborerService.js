@@ -21,6 +21,15 @@ class DayLaborerService extends BaseService {
             throw error;
         }
     }
+
+    async findWithPendingPayments() {
+        try {
+            return await this.get('pending-payments');
+        } catch (error) {
+            console.error('Erro ao buscar diaristas com pagamentos pendentes:', error);
+            throw error;
+        }
+    }
 }
 
 export default new DayLaborerService();

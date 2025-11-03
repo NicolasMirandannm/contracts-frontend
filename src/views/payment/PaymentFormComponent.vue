@@ -39,9 +39,12 @@ const form = ref({
   version: null,
 });
 
-const selectedDiarist = computed(() =>
-    diarists.value.find(d => d.id === form.value.diarist) || { id: null, name: '', pixKey: '' }
-);
+const selectedDiarist = computed(() => {
+  if (props.mode === 'create' || !form.value.diarist) {
+    return diarists.value.find(d => d.id === form.value.diarist) || { id: null, name: '', pixKey: '' }
+  }
+  return form.value.diarist;
+});
 
 
 const formRef = ref(null);
@@ -83,6 +86,41 @@ const allSelected = computed({
 
 
 watch(
+    () => props.modelValue,
+    (val) => {
+      if (!val) return;
+
+      // Preenche o form de forma segura
+      form.value = {
+        ...val,
+        diarist: val.dayLaborer || null,
+        enterprise: val.enterprise?.id || null,
+        startDate: val.startDate || startOfMonth,
+        endDate: val.endDate || endOfMonth,
+        date: val.date || today,
+        method: val.method || null,
+        observations: val.observations || null,
+        value: val.value || 0,
+        version: val.version,
+      };
+
+      // Se o pagamento já tiver diárias associadas
+      if (Array.isArray(val.dailyWages) && val.dailyWages.length > 0) {
+        availableDailyWages.value = val.dailyWages.map(dw => ({
+          ...dw,
+          enterprise: dw.enterprise || { id: null, name: '-' },
+        }));
+        selectedIds.value = val.dailyWages.map(dw => dw.id);
+      } else {
+        availableDailyWages.value = [];
+        selectedIds.value = [];
+      }
+    },
+    { immediate: true, deep: true }
+);
+
+
+watch(
     () => [form.value.diarist, form.value.enterprise, form.value.startDate, form.value.endDate],
     ([diarist, enterprise, startDate, endDate]) => {
       if (diarist && startDate && endDate) {
@@ -103,17 +141,13 @@ watch(selectedIds, () => {
   form.value.value = total;
 }, { deep: true });
 
-// -------- Mocks --------
-function mockDelay(ms = 400) {
-  return new Promise(r => setTimeout(r, ms));
-}
 
 async function fetchDiarists() {
   firstLoad.value = true;
   if (catalogLoaded.value.diarists) return;
 
   try {
-    const response = await DayLaborerService.findAll();
+    const response = await DayLaborerService.findWithPendingPayments();
     diarists.value = Array.isArray(response)
         ? response
         : response?.content || [];
@@ -124,6 +158,7 @@ async function fetchDiarists() {
   }
   catalogLoaded.value.diarists = true;
 }
+
 
 async function fetchEnterprises() {
   if (catalogLoaded.value.enterprises) return;

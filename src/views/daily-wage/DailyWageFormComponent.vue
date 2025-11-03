@@ -114,7 +114,8 @@ watch(
           enterprise: val.enterprise?.id || null,
           workDay: val.workDate ? val.workDate.substring(0, 10) : null,
           startHour: val.startHour ? val.startHour.substring(0, 5) : null,
-          endHour: val.endHour ? val.endHour.substring(0, 5) : null
+          endHour: val.endHour ? val.endHour.substring(0, 5) : null,
+          version: val.version || null
         };
 
         if (val.dayLaborer) {
@@ -466,6 +467,7 @@ const loadEmpresas = async () => {
 
         <!-- Tabela de diaristas -->
         <BaseDataTable
+            class="mb-8 elevation-2"
             v-if="selectedDiarists.length"
             :headers="[
               { key: 'name', label: 'Nome', align: 'left', width: '25%' },
@@ -553,7 +555,6 @@ const loadEmpresas = async () => {
             density="compact"
             variant="outlined"
             :readonly="true"
-            :disabled="true"
             rows="2"
             max-rows="4"
         />
