@@ -46,27 +46,27 @@
             align-tabs="center"
             grow
         >
-          <v-tab value="diaristas">Diaristas</v-tab>
-          <v-tab value="empresas">Empresas</v-tab>
           <v-tab value="diarias">Diárias</v-tab>
           <v-tab value="pagamentos">Pagamentos</v-tab>
+          <v-tab value="diaristas">Diaristas</v-tab>
+          <v-tab value="empresas">Empresas</v-tab>
         </v-tabs>
 
         <v-window v-model="selectedTab" class="mt-4" :touch="false">
-          <v-window-item value="diaristas">
-            <DayLaborer />
-          </v-window-item>
-
-          <v-window-item value="empresas">
-            <Enterprise />
-          </v-window-item>
-
           <v-window-item value="diarias">
             <DailyWage />
           </v-window-item>
 
           <v-window-item value="pagamentos">
             <Payment />
+          </v-window-item>
+
+          <v-window-item value="diaristas">
+            <DayLaborer />
+          </v-window-item>
+
+          <v-window-item value="empresas">
+            <Enterprise />
           </v-window-item>
         </v-window>
       </v-container>
