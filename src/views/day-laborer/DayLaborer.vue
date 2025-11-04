@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
 import HeaderDayLaborerComponent from "@/views/day-laborer/HeaderDayLaborerComponent.vue";
 import DayLaborerFormComponent from "@/views/day-laborer/DayLaborerFormComponent.vue";
@@ -7,6 +7,13 @@ import DayLaborerService from "@/api/services/day-laborer/DayLaborerService.js";
 
 const diaristas = ref({ content: [], totalElements: 0, totalPages: 0 });
 const carregando = ref(false);
+
+const page = ref(1);
+const itemsPerPage = ref(5);
+
+watch(page, (newPage) => {
+  loadDiaristas(newPage - 1);
+});
 
 const filtrosAtuais = ref({
   name: null,
@@ -80,9 +87,6 @@ const headers = [
   { title: 'Status',         key: 'status',         align: 'center' },
   { title: 'Ações',          key: 'acoes',          align: 'center', sortable: false },
 ]
-
-const page = ref(1);
-const itemsPerPage = ref(5);
 
 const pageCount = computed(() => diaristas.value.totalPages || 0);
 
@@ -166,7 +170,6 @@ const onDialogCancel = () => {
           :items-length="diaristas.totalElements"
           :page="page"
           :items-per-page="itemsPerPage"
-          @update:page="onPageChange"
           @update:items-per-page="onItemsPerPageChange"
       >
         <template #header.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
@@ -213,7 +216,6 @@ const onDialogCancel = () => {
                 :length="pageCount"
                 :total-visible="7"
                 rounded="circle"
-                @update:model-value="onPageChange"
             />
             <v-select
                 v-model="itemsPerPage"

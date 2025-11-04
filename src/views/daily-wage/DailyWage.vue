@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
 import HeaderDailyWageComponent from "@/views/daily-wage/HeaderDailyWageComponent.vue";
 import DailyWageFormComponent from "@/views/daily-wage/DailyWageFormComponent.vue";
@@ -7,6 +7,13 @@ import DailyWageService from "@/api/services/daily-wage/DailyWageService.js";
 
 const diarias = ref({ content: [], totalElements: 0, totalPages: 0 });
 const carregando = ref(false);
+
+const page = ref(1);
+const itemsPerPage = ref(5);
+
+watch(page, (newPage) => {
+  loadDiarias(newPage - 1);
+});
 
 const filtrosAtuais = ref({
   dayLaborerName: null,
@@ -91,9 +98,6 @@ const headers = [
   { title: 'Status',         key: 'paymentStatus',             align: 'center' },
   { title: 'Ações',          key: 'acoes',                     align: 'center', sortable: false },
 ]
-
-const page = ref(1);
-const itemsPerPage = ref(5);
 
 const pageCount = computed(() => diarias.value.totalPages || 0);
 
@@ -189,7 +193,6 @@ const onDialogCancel = () => {
           :items-length="diarias.totalElements"
           :page="page"
           :items-per-page="itemsPerPage"
-          @update:page="onPageChange"
           @update:items-per-page="onItemsPerPageChange"
       >
         <template #header.enterprise.name="{ column }"><span class="font-weight-bold">{{ column.title }}</span></template>
@@ -246,7 +249,6 @@ const onDialogCancel = () => {
                 :length="pageCount"
                 :total-visible="7"
                 rounded="circle"
-                @update:model-value="onPageChange"
             />
             <v-select
                 v-model="itemsPerPage"

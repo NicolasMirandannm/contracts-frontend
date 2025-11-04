@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import DeleteDialog from '@/shared/DeleteDialog.vue';
 import HeaderPaymentComponent from '@/views/payment/HeaderPaymentComponent.vue';
 import PaymentFormComponent from '@/views/payment/PaymentFormComponent.vue';
@@ -7,6 +7,13 @@ import PaymentService from '@/api/services/payment/PaymentService.js';
 
 const payments = ref({ content: [], totalElements: 0, totalPages: 0 });
 const loading = ref(false);
+
+const page = ref(1);
+const itemsPerPage = ref(5);
+
+watch(page, (newPage) => {
+  loadPayments(newPage - 1);
+});
 
 const today = new Date();
 const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -22,9 +29,6 @@ const currentFilters = ref({
   startDate: startOfMonth,
   endDate: endOfMonth,
 });
-
-const page = ref(1);
-const itemsPerPage = ref(5);
 
 const pageCount = computed(() => payments.value.totalPages || 0);
 
@@ -200,7 +204,6 @@ onMounted(async () => {
           :items-length="payments.totalElements"
           :page="page"
           :items-per-page="itemsPerPage"
-          @update:page="onPageChange"
           @update:items-per-page="onItemsPerPageChange"
       >
         <!-- Header slot for custom header titles -->
@@ -280,7 +283,6 @@ onMounted(async () => {
                 :length="pageCount"
                 :total-visible="7"
                 rounded="circle"
-                @update:model-value="onPageChange"
             />
             <v-select
                 v-model="itemsPerPage"

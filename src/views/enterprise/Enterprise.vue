@@ -1,12 +1,19 @@
 <script setup>
 import HeaderEnterpriseComponent from "@/views/enterprise/HeaderEnterpriseComponent.vue";
-import { computed, onMounted, ref } from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import EnterpriseFormComponent from "@/views/enterprise/EnterpriseFormComponent.vue";
 import EnterpriseService from "@/api/services/enterprise/EnterpriseService.js";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
 
 const empresas = ref({ content: [], totalElements: 0, totalPages: 0 });
 const carregando = ref(false);
+
+const page = ref(1);
+const itemsPerPage = ref(5);
+
+watch(page, (newPage) => {
+  loadEmpresas(newPage - 1);
+});
 
 const filtrosAtuais = ref({
   name: null,
@@ -73,9 +80,6 @@ const headers = [
   { title: 'Status', key: 'status', align: 'center' },
   { title: 'Ações', key: 'acoes', align: 'center', sortable: false },
 ]
-
-const page = ref(1)
-const itemsPerPage = ref(5)
 
 const pageCount = computed(() => empresas.value.totalPages || 0);
 
@@ -160,7 +164,6 @@ const onDialogCancel = () => {
           :items-length="empresas.totalElements"
           :page="page"
           :items-per-page="itemsPerPage"
-          @update:page="onPageChange"
           @update:items-per-page="onItemsPerPageChange"
       >
         <template #header.name="{ column }">
@@ -227,7 +230,6 @@ const onDialogCancel = () => {
                 :length="pageCount"
                 :total-visible="7"
                 rounded="circle"
-                @update:model-value="onPageChange"
             />
             <v-select
                 v-model="itemsPerPage"
