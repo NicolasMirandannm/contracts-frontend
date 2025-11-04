@@ -160,6 +160,40 @@ const onDeleted = async () => {
   selectedPayment.value = null;
 };
 
+const emitirDemonstrativo = async (item) => {
+  try {
+    const paymentId = item.id;
+    const response = await PaymentService.downloadStatementPdf(paymentId);
+
+    // Cria um blob a partir dos bytes retornados
+    const blob = new Blob([response.data], { type: "application/pdf" });
+
+    // Recupera o nome do arquivo do cabeçalho (se existir)
+    const contentDisposition = response.headers["content-disposition"];
+    let filename = "arquivo.pdf";
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename="(.+)"/);
+      if (match && match[1]) filename = match[1];
+    }
+
+    // Cria uma URL temporária e força o download
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+
+    // Limpeza
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Erro ao emitir demonstrativo:", error);
+  }
+};
+
+
+
 const onDeleteError = (err) => {
   console.error(err);
 };
@@ -249,6 +283,7 @@ onMounted(async () => {
             >
               Ver Mais
             </v-btn>
+
             <v-btn
                 size="small"
                 variant="text"
@@ -258,6 +293,17 @@ onMounted(async () => {
             >
               Editar
             </v-btn>
+
+            <v-btn
+                size="small"
+                variant="text"
+                color="secondary"
+                prepend-icon="mdi-file-pdf-box"
+                @click="emitirDemonstrativo(item)"
+            >
+              Emitir demonstrativo
+            </v-btn>
+
             <v-btn
                 size="small"
                 variant="text"
