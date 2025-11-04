@@ -28,26 +28,26 @@ function showSnackbar(message, color = "info") {
 
 const form = ref({
   ...props.modelValue,
-  diarist: null,
-  enterprise: null,
+  diarist: '',
+  enterprise: '',
   startDate: startOfMonth,
   endDate: endOfMonth,
   date: today,
-  method: null,
-  observations: null,
+  method: '',
+  observations: '',
   value: 0,
-  version: null,
+  version: 0,
 });
 
 const selectedDiarist = computed(() => {
   if (props.mode === 'create' || !form.value.diarist) {
-    return diarists.value.find(d => d.id === form.value.diarist) || { id: null, name: '', pixKey: '' }
+    return diarists.value.find(d => d.id === form.value.diarist) || { id: '', name: '', pixKey: '' }
   }
   return form.value.diarist;
 });
 
 
-const formRef = ref(null);
+const formRef = ref('');
 const formValid = ref(false);
 const isSubmitting = ref(false);
 const isReadOnly = computed(() => props.mode === 'view');

@@ -16,12 +16,12 @@ const emit = defineEmits(["update:modelValue", "submit", "cancel"]);
 
 const form = ref({
   ...props.modelValue,
-  enterprise: null,
-  dayLaborer: null,
-  workDay: null,
-  startHour: null,
-  endHour: null,
-  version: null
+  enterprise: '',
+  dayLaborer: '',
+  workDay: '',
+  startHour: '',
+  endHour: '',
+  version: ''
 });
 
 const diaristas = ref([]);
@@ -32,7 +32,7 @@ const isLoadingDiaristas = ref(false);
 const showDiaristSelect = ref(false);
 
 const isReadOnly = computed(() => props.mode === "view");
-const formRef = ref(null);
+const formRef = ref('');
 const formValid = ref(false);
 const isSubmitting = ref(false);
 const hasDiarists = computed(() => selectedDiarists.value.length > 0);

@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch} from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
 import HeaderDailyWageComponent from "@/views/daily-wage/HeaderDailyWageComponent.vue";
 import DailyWageFormComponent from "@/views/daily-wage/DailyWageFormComponent.vue";
@@ -38,8 +38,7 @@ const loadDiarias = async (page = 0) => {
       }
     });
 
-    const response = await DailyWageService.findAll(params);
-    diarias.value = response;
+    diarias.value = await DailyWageService.findAll(params);
 
   } catch (error) {
     console.error('Erro ao buscar diarias:', error);
@@ -129,6 +128,10 @@ function onCadastrar() {
   dialogMode.value = "create";
   selectedDiaria.value = {};
   dialog.value = true;
+}
+
+function hasPayment(item) {
+  return item.paymentStatus === 'PAGO';
 }
 
 function onEditar(item) {
@@ -232,8 +235,8 @@ const onDialogCancel = () => {
         <template #item.acoes="{ item }">
           <div class="d-flex justify-center ga-2">
             <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-eye" @click="onVerMais(item)">Ver Mais</v-btn>
-            <v-btn size="small" variant="text" color="info" prepend-icon="mdi-pencil" @click="onEditar(item)">Editar</v-btn>
-            <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete" @click="onDelete(item)">Excluir</v-btn>
+            <v-btn size="small" variant="text" color="info" prepend-icon="mdi-pencil" @click="onEditar(item)" :disabled="hasPayment(item)">Editar</v-btn>
+            <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete" @click="onDelete(item)" :disabled="hasPayment(item)">Excluir</v-btn>
           </div>
         </template>
 

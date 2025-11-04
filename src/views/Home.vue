@@ -54,11 +54,11 @@
 
         <v-window v-model="selectedTab" class="mt-4" :touch="false">
           <v-window-item value="diarias">
-            <DailyWage />
+            <DailyWage :key="dailyWageKey" />
           </v-window-item>
 
           <v-window-item value="pagamentos">
-            <Payment />
+            <Payment @reloadDailyWages="onReloadDailyWages"/>
           </v-window-item>
 
           <v-window-item value="diaristas">
@@ -94,6 +94,7 @@ const { showAlert } = useAlert();
 
 const selectedTab = ref("diarias");
 const user = ref({ name: "" });
+const dailyWageKey = ref(0);
 
 const monthName = new Date()
     .toLocaleDateString('pt-BR', { month: 'long' })
@@ -109,6 +110,11 @@ const resumo = ref([
 const logout = () => {
   UserService.signOut();
   router.push(RouteConstants.LOGIN.push());
+};
+
+const onReloadDailyWages = async () => {
+  dailyWageKey.value++;      // força recriação do <DailyWage>
+  await loadLucroMensal();   // atualiza card de lucro
 };
 
 const loadEmpresas = async () => {

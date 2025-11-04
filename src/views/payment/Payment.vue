@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import DeleteDialog from '@/shared/DeleteDialog.vue';
 import HeaderPaymentComponent from '@/views/payment/HeaderPaymentComponent.vue';
 import PaymentFormComponent from '@/views/payment/PaymentFormComponent.vue';
@@ -7,6 +7,7 @@ import PaymentService from '@/api/services/payment/PaymentService.js';
 
 const payments = ref({ content: [], totalElements: 0, totalPages: 0 });
 const loading = ref(false);
+const emits = defineEmits(['reloadDailyWages']);
 
 const page = ref(1);
 const itemsPerPage = ref(5);
@@ -23,9 +24,8 @@ const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0)
     .toISOString()
     .substring(0, 10);
 
-
 const currentFilters = ref({
-  paymentId: null,
+  paymentId: '',
   startDate: startOfMonth,
   endDate: endOfMonth,
 });
@@ -35,19 +35,23 @@ const pageCount = computed(() => payments.value.totalPages || 0);
 const loadPayments = async (pageIndex = 0) => {
   try {
     loading.value = true;
-    // Combine pagination and filter parameters
+
     const params = {
       page: pageIndex,
       size: itemsPerPage.value,
       ...currentFilters.value,
     };
-    // Remove null or empty values to avoid sending unnecessary query params
+
     Object.keys(params).forEach((key) => {
-      if (params[key] === null || params[key] === '' || params[key] === undefined) {
+      if (
+          params[key] === null ||
+          params[key] === '' ||
+          params[key] === undefined
+      ) {
         delete params[key];
       }
     });
-    // Call the payment service
+
     payments.value = await PaymentService.findAll(params);
   } catch (error) {
     console.error('Erro ao buscar pagamentos:', error);
@@ -57,14 +61,12 @@ const loadPayments = async (pageIndex = 0) => {
   }
 };
 
-// Format a date string into "dd/MM/yyyy" for display
 const formatDate = (dateString) => {
   if (!dateString) return '-';
   const date = new Date(dateString);
   return date.toLocaleDateString('pt-BR');
 };
 
-// Format a number into Brazilian currency format
 const formatCurrency = (value) => {
   if (value === null || value === undefined) return 'R$ 0,00';
   return new Intl.NumberFormat('pt-BR', {
@@ -73,16 +75,17 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-// Table headers for the payment list
+// headers com a nova coluna "Diárias Pagas"
 const headers = [
   { title: 'Data', key: 'paymentDateFormatted', align: 'center' },
   { title: 'Diarista', key: 'dayLaborer', align: 'center' },
   { title: 'Valor', key: 'valueFormatted', align: 'center' },
+  { title: 'Diárias Pagas', key: 'dailyWagesCount', align: 'center' },
   { title: 'Método', key: 'method', align: 'center' },
   { title: 'Ações', key: 'acoes', align: 'center', sortable: false },
 ];
 
-// Compute a formatted version of the payments for display
+// inclui dailyWagesCount usando o length do dailyWages
 const paymentsFormatted = computed(() => {
   return payments.value.content.map((payment) => {
     return {
@@ -90,23 +93,21 @@ const paymentsFormatted = computed(() => {
       paymentDateFormatted: formatDate(payment.date),
       valueFormatted: formatCurrency(payment.value),
       dayLaborer: payment.dayLaborer,
-      version: payment.version
+      version: payment.version,
+      dailyWagesCount: payment.dailyWages ? payment.dailyWages.length : 0,
     };
   });
 });
 
-// Handle page changes from the data table
 const onPageChange = (newPage) => {
   loadPayments(newPage - 1);
 };
 
-// Handle change in items per page
 const onItemsPerPageChange = () => {
   page.value = 1;
   loadPayments(0);
 };
 
-// Handle filter application from the header component
 const applyFilters = (filters) => {
   if (filters === null) {
     currentFilters.value = {};
@@ -117,7 +118,6 @@ const applyFilters = (filters) => {
   loadPayments(0);
 };
 
-// Dialog controls for create/edit/view payment
 const dialog = ref(false);
 const dialogMode = ref('create');
 const selectedPayment = ref(null);
@@ -146,7 +146,6 @@ function onDelete(item) {
   deleteDialog.value = true;
 }
 
-// After a payment is deleted, reload the current page
 const onDeleted = async () => {
   try {
     await loadPayments(page.value - 1);
@@ -154,6 +153,7 @@ const onDeleted = async () => {
       page.value = page.value - 1;
       await loadPayments(page.value - 1);
     }
+    emits("reloadDailyWages");
   } catch (err) {
     console.error('Erro ao recarregar pagamentos:', err);
   }
@@ -165,52 +165,44 @@ const emitirDemonstrativo = async (item) => {
     const paymentId = item.id;
     const response = await PaymentService.downloadStatementPdf(paymentId);
 
-    // Cria um blob a partir dos bytes retornados
-    const blob = new Blob([response.data], { type: "application/pdf" });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
 
-    // Recupera o nome do arquivo do cabeçalho (se existir)
-    const contentDisposition = response.headers["content-disposition"];
-    let filename = "arquivo.pdf";
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = 'arquivo.pdf';
     if (contentDisposition) {
       const match = contentDisposition.match(/filename="(.+)"/);
       if (match && match[1]) filename = match[1];
     }
 
-    // Cria uma URL temporária e força o download
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = url;
-    link.setAttribute("download", filename);
+    link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
 
-    // Limpeza
     link.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Erro ao emitir demonstrativo:", error);
+    console.error('Erro ao emitir demonstrativo:', error);
   }
 };
-
-
 
 const onDeleteError = (err) => {
   console.error(err);
 };
 
-// After submit in form dialog, close the dialog and refresh list
 const onDialogSubmit = async () => {
   dialog.value = false;
   await loadPayments(page.value - 1);
+  emits("reloadDailyWages")
 };
 
-// Cancel form dialog: simply close and reset selection
 const onDialogCancel = () => {
   dialog.value = false;
   selectedPayment.value = null;
 };
 
-// Load initial payments on mount
 onMounted(async () => {
   await loadPayments(0);
 });
@@ -218,14 +210,12 @@ onMounted(async () => {
 
 <template>
   <div class="w-100 h-100">
-    <!-- Header component with filter controls and create button -->
     <HeaderPaymentComponent
         class="mb-4"
         @cadastrar="onCadastrar"
         @filtrar="applyFilters"
     />
 
-    <!-- Card containing the data table -->
     <v-card
         elevation="1"
         class="d-flex flex-column flex-grow-1 w-100 shadow-sm"
@@ -240,7 +230,7 @@ onMounted(async () => {
           :items-per-page="itemsPerPage"
           @update:items-per-page="onItemsPerPageChange"
       >
-        <!-- Header slot for custom header titles -->
+        <!-- headers -->
         <template #header.paymentDateFormatted="{ column }">
           <span class="font-weight-bold">{{ column.title }}</span>
         </template>
@@ -250,6 +240,9 @@ onMounted(async () => {
         <template #header.valueFormatted="{ column }">
           <span class="font-weight-bold">{{ column.title }}</span>
         </template>
+        <template #header.dailyWagesCount="{ column }">
+          <span class="font-weight-bold">{{ column.title }}</span>
+        </template>
         <template #header.method="{ column }">
           <span class="font-weight-bold">{{ column.title }}</span>
         </template>
@@ -257,66 +250,70 @@ onMounted(async () => {
           <span class="font-weight-bold">{{ column.title }}</span>
         </template>
 
-        <!-- Data slots for each column -->
+        <!-- linhas -->
         <template #item.paymentDateFormatted="{ item }">
           {{ item.paymentDateFormatted }}
         </template>
+
         <template #item.dayLaborer="{ item }">
           {{ item.dayLaborer?.name || '-' }}
         </template>
+
         <template #item.valueFormatted="{ item }">
           <span>{{ item.valueFormatted }}</span>
         </template>
+
+        <template #item.dailyWagesCount="{ item }">
+          {{ item.dailyWagesCount }}
+        </template>
+
         <template #item.method="{ item }">
           {{ item.method || '-' }}
         </template>
 
-        <!-- Action buttons: view, edit, delete -->
         <template #item.acoes="{ item }">
-          <div class="d-flex justify-center ga-2">
-            <v-btn
-                size="small"
-                variant="text"
-                color="primary"
-                prepend-icon="mdi-eye"
-                @click="onView(item)"
-            >
-              Ver Mais
-            </v-btn>
+          <v-btn
+              size="small"
+              variant="text"
+              color="primary"
+              prepend-icon="mdi-eye"
+              @click="onView(item)"
+          >
+            Ver Mais
+          </v-btn>
 
-            <v-btn
-                size="small"
-                variant="text"
-                color="info"
-                prepend-icon="mdi-pencil"
-                @click="onEditar(item)"
-            >
-              Editar
-            </v-btn>
+          <v-btn
+              size="small"
+              variant="text"
+              color="info"
+              prepend-icon="mdi-pencil"
+              @click="onEditar(item)"
+          >
+            Editar
+          </v-btn>
 
-            <v-btn
-                size="small"
-                variant="text"
-                color="secondary"
-                prepend-icon="mdi-file-pdf-box"
-                @click="emitirDemonstrativo(item)"
-            >
-              Emitir demonstrativo
-            </v-btn>
+          <v-btn
+              size="small"
+              variant="text"
+              color="secondary"
+              prepend-icon="mdi-file-pdf-box"
+              @click="emitirDemonstrativo(item)"
+          >
+            Emitir demonstrativo
+          </v-btn>
 
-            <v-btn
-                size="small"
-                variant="text"
-                color="error"
-                prepend-icon="mdi-delete"
-                @click="onDelete(item)"
-            >
-              Excluir
-            </v-btn>
-          </div>
+          <v-btn
+              size="small"
+              variant="text"
+              color="error"
+              prepend-icon="mdi-delete"
+              @click="onDelete(item)"
+          >
+            Excluir
+          </v-btn>
         </template>
 
-        <!-- Table footer with pagination and items per page control -->
+        <!-- footer -->
         <template #bottom>
           <div class="d-flex justify-space-between align-center px-4 py-2 w-100">
             <div>
@@ -345,7 +342,6 @@ onMounted(async () => {
     </v-card>
   </div>
 
-  <!-- Dialog for create/edit/view payment -->
   <v-dialog v-model="dialog" max-width="1000px">
     <PaymentFormComponent
         :mode="dialogMode"
@@ -355,7 +351,6 @@ onMounted(async () => {
     />
   </v-dialog>
 
-  <!-- Confirmation dialog for deletion -->
   <DeleteDialog
       v-model="deleteDialog"
       :item="selectedPayment"

@@ -16,10 +16,10 @@ watch(page, (newPage) => {
 });
 
 const filtrosAtuais = ref({
-  name: null,
-  cpf: null,
-  phoneNumber: null,
-  status: null
+  name: '',
+  cpf: '',
+  phoneNumber: '',
+  status: ''
 });
 
 const formatCPF = (cpf) => {

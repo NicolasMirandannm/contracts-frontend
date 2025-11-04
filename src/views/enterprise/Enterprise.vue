@@ -16,10 +16,10 @@ watch(page, (newPage) => {
 });
 
 const filtrosAtuais = ref({
-  name: null,
-  cnpj: null,
-  ownerName: null,
-  status: null
+  name: '',
+  cnpj: '',
+  ownerName: '',
+  status: ''
 });
 
 function formatCNPJ(value) {
@@ -94,7 +94,7 @@ const onItemsPerPageChange = () => {
 
 const dialog = ref(false);
 const dialogMode = ref("create");
-const selectedEmpresa = ref(null);
+const selectedEmpresa = ref('');
 const deleteDialog = ref(false);
 
 function onCadastrar() {
