@@ -338,6 +338,22 @@ const loadEmpresas = async () => {
     empresas.value = [];
   }
 };
+
+const copied = ref(false);
+async function copyPaymentId() {
+  const paymentId = selectedDiarists.value?.[0]?.paymentId;
+  if (!paymentId) return;
+  try {
+    await navigator.clipboard.writeText(paymentId);
+    copied.value = true;
+    showSnackbar("ID copiado para a área de transferência!", "success");
+    setTimeout(() => (copied.value = false), 2000);
+  } catch (err) {
+    console.error("Erro ao copiar:", err);
+    showSnackbar("Não foi possível copiar o ID.", "error");
+  }
+}
+
 </script>
 
 <template>
@@ -547,17 +563,26 @@ const loadEmpresas = async () => {
           </template>
         </BaseDataTable>
 
-
         <v-text-field
             v-if="props.mode !== 'create' && selectedDiarists[0].paymentId"
             v-model="selectedDiarists[0].paymentId"
             label="Pagamento ID"
-            density="compact"
+            density="comfortable"
             variant="outlined"
-            :readonly="true"
-            rows="2"
-            max-rows="4"
-        />
+            hide-details
+            readonly
+            class="payment-id-field mb-6"
+        >
+          <template #append-inner>
+            <v-icon
+                size="20"
+                class="copy-icon"
+                :icon="copied ? 'mdi-check' : 'mdi-content-copy'"
+                @click.stop="copyPaymentId"
+            />
+          </template>
+        </v-text-field>
+
 
         <v-textarea
             v-model="form.notes"
@@ -612,6 +637,24 @@ const loadEmpresas = async () => {
 </template>
 
 <style scoped>
+
+.payment-id-field {
+  position: relative;
+}
+
+.copy-icon {
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.copy-icon:hover {
+  color: var(--v-theme-primary);
+}
+
+.copy-icon[icon="mdi-check"] {
+  color: var(--v-theme-success);
+  transform: scale(1.3);
+}
 
 .table-container {
   display: flex;

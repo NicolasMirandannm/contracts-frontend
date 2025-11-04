@@ -110,7 +110,7 @@ const hasActiveFilters = computed(() => {
 
 const onFiltrar = () => {
   emit('filtrar', {
-    dayLaborerName: filters.value.paymentId || null,
+    paymentId: filters.value.paymentId || null,
     startDate: filters.value.startDate || null,
     endDate: filters.value.endDate || null,
   });
