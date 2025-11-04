@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import {computed, onMounted, ref} from "vue";
 import DeleteDialog from "@/shared/DeleteDialog.vue";
 import HeaderDayLaborerComponent from "@/views/day-laborer/HeaderDayLaborerComponent.vue";
 import DayLaborerFormComponent from "@/views/day-laborer/DayLaborerFormComponent.vue";
@@ -48,9 +48,7 @@ const loadDiaristas = async (page = 0) => {
         delete params[key];
       }
     });
-
-    const response = await DayLaborerService.findAll(params);
-    diaristas.value = response;
+    diaristas.value = await DayLaborerService.findAll(params);
   } catch (error) {
     console.error('Erro ao buscar diaristas:', error)
     diaristas.value = []
