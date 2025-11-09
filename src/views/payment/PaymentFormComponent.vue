@@ -93,7 +93,7 @@ watch(
       // Preenche o form de forma segura
       form.value = {
         ...val,
-        diarist: val.dayLaborer || null,
+        diarist: val.dayLaborer?.id || null,
         enterprise: val.enterprise?.id || null,
         startDate: val.startDate || startOfMonth,
         endDate: val.endDate || endOfMonth,
@@ -103,6 +103,7 @@ watch(
         value: val.value || 0,
         version: val.version,
       };
+      diarists.value = val.dayLaborer ? [val.dayLaborer] : [];
 
       // Se o pagamento já tiver diárias associadas
       if (Array.isArray(val.dailyWages) && val.dailyWages.length > 0) {
@@ -135,7 +136,7 @@ watch(selectedIds, () => {
   const map = new Map(availableDailyWages.value.map(w => [w.id, w]));
   const total = selectedIds.value.reduce((acc, id) => {
     const w = map.get(id);
-    const amount = w?.dayLaborerPaymentValue ?? w?.value ?? w?.baseDailyRate ?? 0;
+    const amount = w?.dayLaborerPaymentValue ?? w?.valuePaid  ?? 0;
     return acc + Number(amount || 0);
   }, 0);
   form.value.value = total;
@@ -191,9 +192,20 @@ async function fetchAvailableDailyWages(diaristId, enterprise, startDate, endDat
       }
     });
     const response = await DailyWageService.findAllByDiarist(diaristId, params);
-    availableDailyWages.value = Array.isArray(response)
-        ? response
-        : [];
+
+    console.log(response)
+    if (props.mode === 'edit' && Array.isArray(props.modelValue?.dailyWages)) {
+      const combined = [...response, ...availableDailyWages.value];
+
+      // Remover duplicatas
+      const uniqueMap = new Map();
+      combined.forEach(dw => {
+        uniqueMap.set(dw.id, dw);
+      });
+      availableDailyWages.value = Array.from(uniqueMap.values());
+    } else {
+      availableDailyWages.value = response;
+    }
 
   } catch (error) {
     let msg = error?.response?.data?.message || "Erro desconhecido";
@@ -293,8 +305,8 @@ async function ensureDiaristsLoaded() {
                 label="Diarista"
                 variant="outlined"
                 density="comfortable"
-                :readonly="isReadOnly"
-                :disabled="isReadOnly"
+                :readonly="isReadOnly || props.mode === 'edit'"
+                :disabled="isReadOnly || props.mode === 'edit'"
                 :loading="!catalogLoaded.diarists && firstLoad"
                 @focus="ensureDiaristsLoaded"
                 :rules="[v => !!v || 'Campo obrigatório']"

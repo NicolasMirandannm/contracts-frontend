@@ -40,7 +40,7 @@ const hasDiarists = computed(() => selectedDiarists.value.length > 0);
 const showDeleteAction = computed(() => props.mode === "create");
 
 const resetDiaristasSearch = () => {
-  if (showDiaristSelect.value) {
+  if (showDiaristSelect.value && props.mode !== "edit") {
     showDiaristSelect.value = false;
     diaristas.value = [];
     selectedDiarists.value = [];
@@ -179,7 +179,7 @@ watch(
     () => [form.value.enterprise, form.value.workDay, form.value.startHour, form.value.endHour],
     ([enterprise, workDay, startHour, endHour]) => {
 
-      if (enterprise && workDay && startHour && endHour) {
+      if (enterprise && workDay && startHour && endHour && props.mode !== "edit") {
         const startMinutes = startToMinutes(startHour);
         const endMinutes = startToMinutes(endHour);
 
@@ -328,7 +328,7 @@ onMounted(async () => {
 
 const loadEmpresas = async () => {
   try {
-    const response = await EnterpriseService.findAll();
+    const response = await EnterpriseService.findAll({status: 'ATIVO'});
     empresas.value = Array.isArray(response)
         ? response
         : response?.content || [];

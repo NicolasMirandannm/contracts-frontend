@@ -147,9 +147,9 @@ const onRegister = () => {
   if (valid.value) {
     UserService.signUp(new SignUpDto(
         name.value,
-        phone.value,
         email.value,
-        password.value
+        password.value,
+        phone.value
     )).then(() => {
       showAlert({
         msg: "Cadastro realizado com sucesso! Você será redirecionado para a página principal.",

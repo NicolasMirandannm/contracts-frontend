@@ -39,6 +39,7 @@ async function onSubmit() {
 }
 
 async function createDiarista() {
+
   try {
     await DayLaborerService.create(form.value);
     showSnackbar("Diarista cadastrado com sucesso!", "success");
